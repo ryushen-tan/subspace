@@ -12,7 +12,7 @@ export function useDrag3D(options = {}) {
     pointId: null,
     offset: [0, 0, 0],
   });
-
+  
   const dragPlaneRef = useRef(null);
   const initialPositionRef = useRef(null);
   const objectRef = useRef(null);

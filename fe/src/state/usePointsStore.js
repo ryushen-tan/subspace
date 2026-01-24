@@ -9,6 +9,7 @@ export const usePointsStore = create((set) => ({
     { id: '5', position: [1, 0, -1], color: '#6c5ce7' },
   ],
   isDragging: false,
+  selectedPointId: null,
 
   addPoint: (point) =>
     set((state) => ({
@@ -18,6 +19,7 @@ export const usePointsStore = create((set) => ({
   removePoint: (id) =>
     set((state) => ({
       points: state.points.filter((p) => p.id !== id),
+      selectedPointId: state.selectedPointId === id ? null : state.selectedPointId,
     })),
 
   updatePoint: (id, position) =>
@@ -30,4 +32,6 @@ export const usePointsStore = create((set) => ({
   setPoints: (points) => set({ points }),
   
   setDragging: (isDragging) => set({ isDragging }),
+
+  selectPoint: (id) => set({ selectedPointId: id }),
 }));
