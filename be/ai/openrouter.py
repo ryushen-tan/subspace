@@ -33,6 +33,7 @@ class OpenRouterClient:
             kwargs["tool_choice"] = "auto"
 
         response = self.client.chat.completions.create(**kwargs)
+        print(f"LLM response: {response}")
         return response
 
     def parse_tool_call(self, response) -> dict[str, Any] | None:
