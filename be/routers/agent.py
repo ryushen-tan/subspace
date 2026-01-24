@@ -128,6 +128,7 @@ async def agent_ws(websocket: WebSocket):
                 continue
 
             message_type = payload.get("type")
+            print(f"Received message type: {message_type}, payload: {payload}")
 
             if message_type == "start":
                 prompt = payload.get("prompt", "")
@@ -157,13 +158,17 @@ async def agent_ws(websocket: WebSocket):
             if message_type == "message":
                 content = payload.get("content", "")
                 agent_runner.add_message(session_id, "user", content)
+                session.state.task_complete = False
                 try:
-                    response = agent_runner.run_step(session_id)
-                    await websocket.send_json({
-                        "type": "response",
-                        "response": response.model_dump() if response else None,
-                        "state": session.state.model_dump(),
-                    })
+                    while not session.state.task_complete and not session.state.finalized:
+                        response = agent_runner.run_step(session_id)
+                        await websocket.send_json({
+                            "type": "response",
+                            "response": response.model_dump() if response else None,
+                            "state": session.state.model_dump(),
+                        })
+                        if response and response.error:
+                            break
                 except Exception as e:
                     print(f"Error in run_step: {e}")
                     await websocket.send_json({

@@ -8,6 +8,7 @@ class AgentState(BaseModel):
     todo: list[str] = []
     iteration: int = 0
     finalized: bool = False
+    task_complete: bool = False
 
 
 class Session(BaseModel):
