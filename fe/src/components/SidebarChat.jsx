@@ -80,9 +80,13 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
             <div className="bg-white/5 rounded-xl p-3 space-y-2">
               <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide">Tasks</p>
               {todo.map((task, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                  <Circle className="w-4 h-4 mt-0.5 text-gray-500 flex-shrink-0" />
-                  <span>{task}</span>
+                <div key={i} className={`flex items-start gap-2 text-sm ${task.done ? 'text-gray-500' : 'text-gray-300'}`}>
+                  {task.done ? (
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-4 h-4 mt-0.5 text-gray-500 flex-shrink-0" />
+                  )}
+                  <span className={task.done ? 'line-through' : ''}>{task.text || task}</span>
                 </div>
               ))}
             </div>

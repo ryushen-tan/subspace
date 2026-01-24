@@ -20,5 +20,5 @@ class CreateTodoTool(Tool):
 
     def execute(self, state: AgentState, **kwargs) -> dict[str, Any]:
         tasks = kwargs.get("tasks", [])
-        state.todo = tasks
-        return {"success": True, "tasks": tasks}
+        state.todo = [{"text": t, "done": False} for t in tasks]
+        return {"success": True, "tasks": state.todo}

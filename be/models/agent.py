@@ -5,7 +5,7 @@ from .mesh import Mesh
 
 class AgentState(BaseModel):
     mesh: Mesh = Mesh()
-    todo: list[str] = []
+    todo: list[dict] = []  # [{"text": "task", "done": False}, ...]
     iteration: int = 0
     finalized: bool = False
     task_complete: bool = False
