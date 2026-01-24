@@ -2,7 +2,8 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
-import { useRef } from 'react';
+import { useAgentStore } from '../state/useAgentStore';
+import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { ViewCube } from '../components/scene/ViewCube';
 
@@ -10,6 +11,40 @@ export function Scene({ isSidebarOpen }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
+  const mesh = useAgentStore((state) => state.mesh);
+
+  const geometry = useMemo(() => {
+    if (!mesh || !mesh.faces || mesh.faces.length === 0) return null;
+
+    const geo = new THREE.BufferGeometry();
+    const vertices = [];
+    const indices = [];
+    const vertexMap = new Map();
+
+    mesh.vertices.forEach((v, i) => {
+      vertexMap.set(v.id, i);
+      vertices.push(...v.p);
+    });
+
+    mesh.faces.forEach((face) => {
+      if (face.length === 3) {
+        indices.push(vertexMap.get(face[0]), vertexMap.get(face[1]), vertexMap.get(face[2]));
+      } else if (face.length === 4) {
+        // Split quad into two triangles
+        const a = vertexMap.get(face[0]);
+        const b = vertexMap.get(face[1]);
+        const c = vertexMap.get(face[2]);
+        const d = vertexMap.get(face[3]);
+        indices.push(a, b, c);
+        indices.push(a, c, d);
+      }
+    });
+
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
+  }, [mesh]);
   
   return (
     <Canvas
@@ -70,6 +105,13 @@ export function Scene({ isSidebarOpen }) {
 
       {/* Point Cloud */}
       <PointCloud />
+
+      {/* Mesh */}
+      {geometry && (
+        <mesh geometry={geometry}>
+          <meshStandardMaterial color="#4f46e5" wireframe={false} transparent opacity={0.8} side={THREE.DoubleSide} />
+        </mesh>
+      )}
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />

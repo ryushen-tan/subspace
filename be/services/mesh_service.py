@@ -29,9 +29,12 @@ class MeshService:
         lines = ["# Generated mesh"]
         id_to_idx = {}
 
+        # Rescale back to original size if scale_factor is present
+        inv_scale = 1.0 / mesh.scale_factor if mesh.scale_factor != 0 else 1.0
+
         for i, v in enumerate(mesh.vertices, 1):
             id_to_idx[v.id] = i
-            lines.append(f"v {v.p[0]} {v.p[1]} {v.p[2]}")
+            lines.append(f"v {v.p[0] * inv_scale} {v.p[1] * inv_scale} {v.p[2] * inv_scale}")
 
         for face in mesh.faces:
             indices = [str(id_to_idx[vid]) for vid in face if vid in id_to_idx]

@@ -75,6 +75,34 @@ export const useAgentStore = create((set, get) => ({
     agentApi.sendMessage(content);
   },
 
+  uploadStepFile: async (file) => {
+    const { sessionId } = get();
+    set({ isLoading: true });
+    try {
+      const mesh = await agentApi.uploadStepFile(file, sessionId);
+      set({ mesh, isLoading: false });
+      
+      if (mesh.vertices?.length > 0) {
+        const points = mesh.vertices.map((v, i) => ({
+          id: v.id,
+          position: v.p,
+          color: COLORS[i % COLORS.length],
+        }));
+        usePointsStore.getState().setPoints(points);
+      }
+      
+      set((s) => ({
+        messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
+      }));
+    } catch (error) {
+      console.error('Upload error:', error);
+      set({ isLoading: false });
+      set((s) => ({
+        messages: [...s.messages, { role: 'assistant', content: `Error uploading ${file.name}: ${error.message}` }],
+      }));
+    }
+  },
+
   disconnect: () => {
     agentApi.close();
     set({ isConnected: false, sessionId: null });

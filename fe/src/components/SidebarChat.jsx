@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import ControlsOverlay from './ControlsOverlay';
 
@@ -8,13 +8,14 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
   
-  const { 
-    isConnected, 
-    isLoading, 
-    todo, 
-    messages, 
-    connect, 
-    sendMessage 
+  const {
+    isConnected,
+    isLoading,
+    todo,
+    messages,
+    connect,
+    sendMessage,
+    uploadStepFile
   } = useAgentStore();
 
   useEffect(() => {
@@ -34,6 +35,13 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     if (input.trim() && !isLoading) {
       sendMessage(input);
       setInput('');
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      await uploadStepFile(file);
     }
   };
 
@@ -120,7 +128,20 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 border-t border-white/5 bg-transparent">
+        <div className="p-4 border-t border-white/5 bg-transparent space-y-3">
+          <div className="flex items-center gap-2">
+            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-gray-300 cursor-pointer transition-colors">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload .STEP</span>
+              <input
+                type="file"
+                accept=".step,.stp"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+
           <form onSubmit={handleSubmit} className="relative flex items-center">
             <input
               type="text"

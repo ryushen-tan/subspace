@@ -13,3 +13,4 @@ class Mesh(BaseModel):
     faces: list[tuple[str, ...]] = []
     loops: Optional[dict[str, tuple[str, ...]]] = None
     stitch: Optional[list[tuple[str, str]]] = None
+    scale_factor: float = 1.0

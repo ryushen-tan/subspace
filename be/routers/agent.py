@@ -1,9 +1,13 @@
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File
 from pydantic import BaseModel
 from typing import Any
 import json
+import os
+import shutil
+import subprocess
 from ai.agent import AgentRunner
 from services.mesh_service import MeshService
+from models.mesh import Mesh
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 agent_runner = AgentRunner()
@@ -21,6 +25,48 @@ class ToolResponseRequest(BaseModel):
     id: str
     result: Any = None
     error: str | None = None
+
+
+@router.post("/upload-step")
+async def upload_step(file: UploadFile = File(...), session_id: str | None = None):
+    if not file.filename.endswith('.step') and not file.filename.endswith('.stp'):
+        raise HTTPException(status_code=400, detail="Only .step or .stp files are allowed")
+
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, file.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    try:
+        # Get the absolute path to the converter script
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        converter_path = os.path.join(base_dir, "utils", "step_converter.py")
+        
+        # Run the converter script
+        result = subprocess.run(
+            ["python3", converter_path, file_path],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"Conversion failed: {result.stderr}")
+        
+        mesh_data = json.loads(result.stdout)
+        if "error" in mesh_data:
+            raise HTTPException(status_code=500, detail=mesh_data["error"])
+        
+        if session_id:
+            session = agent_runner.get_session(session_id)
+            if session:
+                session.state.mesh = Mesh(**mesh_data)
+        
+        return mesh_data
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 
 @router.post("/start")
