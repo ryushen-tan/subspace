@@ -3,6 +3,7 @@ import { OrbitControls, Grid, PerspectiveCamera, GizmoHelper, GizmoViewcube } fr
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
 import { useRef } from 'react';
+import * as THREE from 'three';
 
 export function Scene() {
   const controlsRef = useRef();
@@ -51,6 +52,12 @@ export function Scene() {
         enableRotate={!isDragging}
         minDistance={2}
         maxDistance={50}
+        mouseButtons={{
+          LEFT: THREE.MOUSE.ROTATE,
+          MIDDLE: THREE.MOUSE.PAN,
+          RIGHT: THREE.MOUSE.ROTATE
+        }}
+        screenSpacePanning={true}
       />
 
       {/* Point Cloud */}
