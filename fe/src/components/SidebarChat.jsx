@@ -1,16 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Send, MessageSquare } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import { useAgentStore } from '../state/useAgentStore';
 
 const SidebarChat = ({ isOpen, setIsOpen }) => {
   const [input, setInput] = useState('');
+  const messagesEndRef = useRef(null);
+  
+  const { 
+    isConnected, 
+    isLoading, 
+    todo, 
+    messages, 
+    connect, 
+    sendMessage 
+  } = useAgentStore();
+
+  useEffect(() => {
+    if (!isConnected) {
+      connect();
+    }
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input.trim()) {
-      console.log('Message sent:', input);
+    if (input.trim() && !isLoading) {
+      sendMessage(input);
       setInput('');
     }
   };
@@ -22,12 +43,12 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="absolute top-4 right-4 bottom-4 bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl"
     >
-      {/* Header / Toggle Button */}
       <div className={`flex items-center p-4 ${isOpen ? 'justify-between border-b border-white/5' : 'justify-center h-full border-none'}`}>
         {isOpen && (
           <div className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-indigo-400" />
             <span className="font-medium text-gray-200">Assistant</span>
+            {isConnected && <span className="w-2 h-2 bg-green-500 rounded-full" />}
           </div>
         )}
         <button
@@ -38,27 +59,61 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
         </button>
       </div>
 
-      {/* Chat Content */}
       <div className={`flex-1 flex flex-col min-w-[320px] transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        {/* Messages Area */}
         <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          {/* Todo List */}
+          {todo.length > 0 && (
+            <div className="bg-white/5 rounded-xl p-3 space-y-2">
+              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide">Tasks</p>
+              {todo.map((task, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                  <Circle className="w-4 h-4 mt-0.5 text-gray-500 flex-shrink-0" />
+                  <span>{task}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Messages */}
           <AnimatePresence>
-             {isOpen && (
-               <motion.div 
-                 initial={{ opacity: 0 }} 
-                 animate={{ opacity: 1 }} 
-                 className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-50"
-               >
-                 <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                    <MessageSquare className="w-6 h-6 text-gray-500" />
-                 </div>
-                 <p className="text-sm text-gray-500">Start a conversation...</p>
-               </motion.div>
-             )}
+            {messages.length === 0 && todo.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-50"
+              >
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6 text-gray-500" />
+                </div>
+                <p className="text-sm text-gray-500">Describe what you want to create...</p>
+              </motion.div>
+            ) : (
+              messages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-3 rounded-xl text-sm ${
+                    msg.role === 'user'
+                      ? 'bg-indigo-600/20 text-gray-200 ml-4'
+                      : 'bg-white/5 text-gray-300 mr-4'
+                  }`}
+                >
+                  {msg.content}
+                </motion.div>
+              ))
+            )}
           </AnimatePresence>
+          
+          {isLoading && (
+            <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Thinking...</span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="p-4 border-t border-white/5 bg-transparent">
           <form onSubmit={handleSubmit} className="relative flex items-center">
             <input
@@ -66,11 +121,12 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message..."
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner"
+              disabled={isLoading}
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50"
             />
             <button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() || isLoading}
               className="absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200"
             >
               <Send className="w-4 h-4" />

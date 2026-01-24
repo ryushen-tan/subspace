@@ -157,12 +157,19 @@ async def agent_ws(websocket: WebSocket):
             if message_type == "message":
                 content = payload.get("content", "")
                 agent_runner.add_message(session_id, "user", content)
-                response = agent_runner.run_step(session_id)
-                await websocket.send_json({
-                    "type": "response",
-                    "response": response.model_dump() if response else None,
-                    "state": session.state.model_dump(),
-                })
+                try:
+                    response = agent_runner.run_step(session_id)
+                    await websocket.send_json({
+                        "type": "response",
+                        "response": response.model_dump() if response else None,
+                        "state": session.state.model_dump(),
+                    })
+                except Exception as e:
+                    print(f"Error in run_step: {e}")
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": str(e),
+                    })
                 continue
 
             if message_type == "tool_response":
