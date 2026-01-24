@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Wrench, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import ControlsOverlay from './ControlsOverlay';
 
@@ -15,6 +15,8 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     messages,
     toolCalls,
     finalized,
+    sessionId,
+    mesh,
     connect,
     sendMessage,
     uploadStepFile
@@ -44,6 +46,27 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     const file = e.target.files[0];
     if (file) {
       await uploadStepFile(file);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!sessionId || !mesh) {
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8000/agent/${sessionId}/mesh/obj`);
+      const data = await response.json();
+      const blob = new Blob([data.obj], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'model.obj';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
     }
   };
 
@@ -171,6 +194,14 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                 className="hidden"
               />
             </label>
+            <button
+              onClick={handleDownload}
+              disabled={!mesh}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-gray-300 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download .OBJ</span>
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="relative flex items-center">
