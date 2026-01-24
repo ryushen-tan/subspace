@@ -9,7 +9,7 @@ export const usePointsStore = create((set) => ({
     { id: '5', position: [1, 0, -1], color: '#6c5ce7' },
   ],
   isDragging: false,
-  selectedPointId: null,
+  selectedPointIds: [],
 
   addPoint: (point) =>
     set((state) => ({
@@ -19,7 +19,7 @@ export const usePointsStore = create((set) => ({
   removePoint: (id) =>
     set((state) => ({
       points: state.points.filter((p) => p.id !== id),
-      selectedPointId: state.selectedPointId === id ? null : state.selectedPointId,
+      selectedPointIds: state.selectedPointIds.filter((selectedId) => selectedId !== id),
     })),
 
   updatePoint: (id, position) =>
@@ -33,5 +33,29 @@ export const usePointsStore = create((set) => ({
   
   setDragging: (isDragging) => set({ isDragging }),
 
-  selectPoint: (id) => set({ selectedPointId: id }),
+  selectPoint: (id, multiSelect = false) =>
+    set((state) => {
+      if (multiSelect) {
+        // Multi-select: toggle the point in selection
+        const isSelected = state.selectedPointIds.includes(id);
+        if (isSelected) {
+          // Deselect if already selected
+          return {
+            selectedPointIds: state.selectedPointIds.filter((selectedId) => selectedId !== id),
+          };
+        } else {
+          // Add to selection
+          return {
+            selectedPointIds: [...state.selectedPointIds, id],
+          };
+        }
+      } else {
+        // Single select: replace selection
+        return {
+          selectedPointIds: state.selectedPointIds.includes(id) ? [] : [id],
+        };
+      }
+    }),
+
+  clearSelection: () => set({ selectedPointIds: [] }),
 }));

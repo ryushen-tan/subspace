@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2 } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
+import ControlsOverlay from './ControlsOverlay';
 
 const SidebarChat = ({ isOpen, setIsOpen }) => {
   const [input, setInput] = useState('');
@@ -43,22 +44,27 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="absolute top-4 right-4 bottom-4 bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl"
     >
-      <div className={`flex items-center p-4 ${isOpen ? 'justify-between border-b border-white/5' : 'justify-center h-full border-none'}`}>
-        {isOpen && (
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-indigo-400" />
-            <span className="font-medium text-gray-200">Assistant</span>
-            {isConnected && <span className="w-2 h-2 bg-green-500 rounded-full" />}
+      {/* Top Bar with Controls Overlay */}
+      <div className={`relative flex items-center border-b border-white/5 ${isOpen ? 'justify-between px-3 py-2.5' : 'justify-center p-2'}`}>
+        {isOpen ? (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <MessageSquare className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <span className="font-medium text-gray-200 text-sm truncate">Assistant</span>
+            {isConnected && <span className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />}
           </div>
-        )}
-        <button
-          onClick={toggleSidebar}
-          className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent"
-        >
-          {isOpen ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-        </button>
+        ) : null}
+        <div className={`flex items-center gap-1.5 ${isOpen ? '' : 'flex-col gap-2'}`}>
+          {isOpen && <ControlsOverlay />}
+          <button
+            onClick={toggleSidebar}
+            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0"
+          >
+            {isOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
+      {/* Chat Section */}
       <div className={`flex-1 flex flex-col min-w-[320px] transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="flex-1 p-4 overflow-y-auto space-y-4">
           {/* Todo List */}

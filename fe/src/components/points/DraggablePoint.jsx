@@ -6,9 +6,10 @@ export function DraggablePoint({ point }) {
   const meshRef = useRef(null);
   const updatePoint = usePointsStore((state) => state.updatePoint);
   const selectPoint = usePointsStore((state) => state.selectPoint);
-  const selectedPointId = usePointsStore((state) => state.selectedPointId);
+  const selectedPointIds = usePointsStore((state) => state.selectedPointIds);
   const setDragging = usePointsStore((state) => state.setDragging);
-  const isSelected = selectedPointId === point.id;
+  const isSelected = selectedPointIds.includes(point.id);
+  const isSingleSelected = selectedPointIds.length === 1 && isSelected;
 
   useEffect(() => {
     if (!meshRef.current) return;
@@ -24,7 +25,9 @@ export function DraggablePoint({ point }) {
         userData={{ pointId: point.id }}
         onPointerDown={(e) => {
           e.stopPropagation();
-          selectPoint(point.id);
+          // Check for multi-select modifier keys (Ctrl, Cmd, or Shift)
+          const isMultiSelect = e.ctrlKey || e.metaKey || e.shiftKey;
+          selectPoint(point.id, isMultiSelect);
           document.body.style.cursor = 'grabbing';
         }}
         onPointerUp={(e) => {
@@ -41,14 +44,14 @@ export function DraggablePoint({ point }) {
         <sphereGeometry args={[0.1, 16, 16]} />
         <meshStandardMaterial
           color={point.color || '#ff6b6b'}
-          emissive={point.color || '#ff6b6b'}
-          emissiveIntensity={isSelected ? 0.5 : 0.2}
+          emissive={isSelected ? '#4a90d9' : (point.color || '#ff6b6b')}
+          emissiveIntensity={isSelected ? 0.6 : 0.2}
           metalness={0.8}
           roughness={0.2}
         />
       </mesh>
 
-      {isSelected && meshRef.current && (
+      {isSingleSelected && meshRef.current && (
         <TransformControls
           object={meshRef.current}
           mode="translate"
