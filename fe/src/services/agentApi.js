@@ -98,6 +98,28 @@ class AgentWebSocket {
 
     return await response.json();
   }
+
+  async uploadStlFile(file, sessionId = null) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    let url = 'http://localhost:8000/agent/upload-stl';
+    if (sessionId) {
+      url += `?session_id=${sessionId}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
+    }
+
+    return await response.json();
+  }
 }
 
 export const agentApi = new AgentWebSocket();

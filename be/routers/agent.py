@@ -69,6 +69,48 @@ async def upload_step(file: UploadFile = File(...), session_id: str | None = Non
             os.remove(file_path)
 
 
+@router.post("/upload-stl")
+async def upload_stl(file: UploadFile = File(...), session_id: str | None = None):
+    if not file.filename.endswith('.stl'):
+        raise HTTPException(status_code=400, detail="Only .stl files are allowed")
+
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, file.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    try:
+        # Get the absolute path to the converter script
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        converter_path = os.path.join(base_dir, "utils", "stl_converter.py")
+        
+        # Run the converter script
+        result = subprocess.run(
+            ["python3", converter_path, file_path],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"Conversion failed: {result.stderr}")
+        
+        mesh_data = json.loads(result.stdout)
+        if "error" in mesh_data:
+            raise HTTPException(status_code=500, detail=mesh_data["error"])
+        
+        if session_id:
+            session = agent_runner.get_session(session_id)
+            if session:
+                session.state.mesh = Mesh(**mesh_data)
+        
+        return mesh_data
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+
 @router.post("/start")
 async def start_session():
     session = agent_runner.create_session()

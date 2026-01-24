@@ -20,7 +20,8 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     mesh,
     connect,
     sendMessage,
-    uploadStepFile
+    uploadStepFile,
+    uploadStlFile
   } = useAgentStore();
 
   useEffect(() => {
@@ -46,7 +47,11 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      await uploadStepFile(file);
+      if (file.name.toLowerCase().endsWith('.stl')) {
+        await uploadStlFile(file);
+      } else {
+        await uploadStepFile(file);
+      }
     }
   };
 
@@ -191,10 +196,10 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           <div className="flex items-center gap-2">
             <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-gray-300 cursor-pointer transition-colors">
               <Upload className="w-3.5 h-3.5" />
-              <span>Upload .STEP</span>
+              <span>Upload .STEP/.STL</span>
               <input
                 type="file"
-                accept=".step,.stp"
+                accept=".step,.stp,.stl"
                 onChange={handleFileUpload}
                 className="hidden"
               />
