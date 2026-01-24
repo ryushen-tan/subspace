@@ -189,9 +189,9 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
 
         <div className="p-4 border-t border-white/5 bg-transparent space-y-3">
           <div className="flex items-center gap-2">
-            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-gray-300 cursor-pointer transition-colors">
+            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-medium text-gray-300 cursor-pointer transition-colors">
               <Upload className="w-3.5 h-3.5" />
-              <span>Upload .STEP</span>
+              <span className="whitespace-nowrap">Upload .STEP</span>
               <input
                 type="file"
                 accept=".step,.stp"
@@ -199,14 +199,15 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                 className="hidden"
               />
             </label>
-            <button
-              onClick={handleDownload}
-              disabled={!mesh}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-gray-300 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            <div
+              onClick={mesh ? handleDownload : undefined}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-medium text-gray-300 transition-colors ${
+                mesh ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'
+              }`}
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download .OBJ</span>
-            </button>
+              <span className="whitespace-nowrap">Download .OBJ</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="relative flex items-center">
