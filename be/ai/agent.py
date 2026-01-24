@@ -1,0 +1,124 @@
+import uuid
+from typing import Any
+from .openrouter import OpenRouterClient
+from models.agent import Session, AgentState
+from models.tool import ToolCall, ToolResponse
+from tools import tool_registry, get_tool_schemas
+from prompt.system import system_prompt
+from config.settings import get_settings
+
+
+class AgentRunner:
+    def __init__(self):
+        self.client = OpenRouterClient()
+        self.sessions: dict[str, Session] = {}
+
+    def create_session(self, user_prompt: str = "") -> Session:
+        session_id = str(uuid.uuid4())
+        session = Session(
+            id=session_id,
+            user_prompt=user_prompt,
+            history=[{"role": "system", "content": system_prompt}],
+        )
+        if user_prompt:
+            session.history.append({"role": "user", "content": user_prompt})
+        self.sessions[session_id] = session
+        return session
+
+    def get_session(self, session_id: str) -> Session | None:
+        return self.sessions.get(session_id)
+
+    def add_message(self, session_id: str, role: str, content: str) -> None:
+        session = self.sessions.get(session_id)
+        if session:
+            session.history.append({"role": role, "content": content})
+
+    def run_step(self, session_id: str) -> ToolResponse | None:
+        session = self.sessions.get(session_id)
+        if not session:
+            return None
+
+        settings = get_settings()
+        if session.state.iteration >= settings.max_agent_iterations:
+            return ToolResponse(
+                id="max_iterations",
+                error="Maximum iterations reached",
+            )
+
+        if session.state.finalized:
+            return ToolResponse(
+                id="finalized",
+                result={"message": "Design already finalized"},
+            )
+
+        response = self.client.chat(
+            messages=session.history,
+            tools=get_tool_schemas(),
+        )
+
+        tool_call_data = self.client.parse_tool_call(response)
+
+        if not tool_call_data:
+            content = response.choices[0].message.content
+            session.history.append({"role": "assistant", "content": content})
+            return ToolResponse(id="no_tool", result={"message": content})
+
+        tool_call = ToolCall(**tool_call_data)
+        tool = tool_registry.get(tool_call.name)
+
+        if not tool:
+            tool_response = ToolResponse(
+                id=tool_call.id,
+                error=f"Unknown tool: {tool_call.name}",
+            )
+        else:
+            try:
+                result = tool.execute(session.state, **tool_call.arguments)
+                tool_response = ToolResponse(id=tool_call.id, result=result)
+            except Exception as e:
+                tool_response = ToolResponse(id=tool_call.id, error=str(e))
+
+        session.history.append({
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [{
+                "id": tool_call.id,
+                "type": "function",
+                "function": {
+                    "name": tool_call.name,
+                    "arguments": str(tool_call.arguments),
+                },
+            }],
+        })
+        session.history.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": str(tool_response.result or tool_response.error),
+        })
+
+        session.state.iteration += 1
+        return tool_response
+
+    def run_until_complete(self, session_id: str) -> list[ToolResponse]:
+        responses = []
+        settings = get_settings()
+
+        while True:
+            session = self.sessions.get(session_id)
+            if not session:
+                break
+
+            if session.state.finalized:
+                break
+
+            if session.state.iteration >= settings.max_agent_iterations:
+                break
+
+            response = self.run_step(session_id)
+            if response:
+                responses.append(response)
+
+            if response and response.error:
+                break
+
+        return responses
