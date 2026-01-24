@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from typing import Any
+import json
 from ai.agent import AgentRunner
 from services.mesh_service import MeshService
 
@@ -110,3 +111,77 @@ async def external_tool_response(session_id: str, request: ToolResponseRequest):
     })
 
     return {"success": True}
+
+
+@router.websocket("/ws")
+async def agent_ws(websocket: WebSocket):
+    await websocket.accept()
+    session_id: str | None = None
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                payload = json.loads(data)
+            except json.JSONDecodeError:
+                await websocket.send_json({"type": "error", "message": "Invalid JSON"})
+                continue
+
+            message_type = payload.get("type")
+
+            if message_type == "start":
+                prompt = payload.get("prompt", "")
+                session = agent_runner.create_session(prompt)
+                session_id = session.id
+                await websocket.send_json({"type": "session", "session_id": session_id})
+                continue
+
+            if not session_id:
+                await websocket.send_json({"type": "error", "message": "Session not initialized"})
+                continue
+
+            session = agent_runner.get_session(session_id)
+            if not session:
+                await websocket.send_json({"type": "error", "message": "Session not found"})
+                continue
+
+            if message_type == "step":
+                response = agent_runner.run_step(session_id)
+                await websocket.send_json({
+                    "type": "response",
+                    "response": response.model_dump() if response else None,
+                    "state": session.state.model_dump(),
+                })
+                continue
+
+            if message_type == "message":
+                content = payload.get("content", "")
+                agent_runner.add_message(session_id, "user", content)
+                response = agent_runner.run_step(session_id)
+                await websocket.send_json({
+                    "type": "response",
+                    "response": response.model_dump() if response else None,
+                    "state": session.state.model_dump(),
+                })
+                continue
+
+            if message_type == "tool_response":
+                tool_id = payload.get("id")
+                if not tool_id:
+                    await websocket.send_json({"type": "error", "message": "Missing tool id"})
+                    continue
+                session.history.append({
+                    "role": "tool",
+                    "tool_call_id": tool_id,
+                    "content": str(payload.get("result") or payload.get("error")),
+                })
+                await websocket.send_json({"type": "ack", "id": tool_id})
+                continue
+
+            if message_type == "state":
+                await websocket.send_json({"type": "state", "state": session.state.model_dump()})
+                continue
+
+            await websocket.send_json({"type": "error", "message": "Unknown message type"})
+    except WebSocketDisconnect:
+        return
