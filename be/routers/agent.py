@@ -5,9 +5,13 @@ import json
 import os
 import shutil
 import subprocess
+import logging
 from ai.agent import AgentRunner
 from services.mesh_service import MeshService
+from services.step_analyzer import analyze_step_file
 from models.mesh import Mesh
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 agent_runner = AgentRunner()
@@ -58,12 +62,31 @@ async def upload_step(file: UploadFile = File(...), session_id: str | None = Non
         if "error" in mesh_data:
             raise HTTPException(status_code=500, detail=mesh_data["error"])
         
+        # Analyze STEP file using vision model
+        analysis = None
+        try:
+            logger.info("Analyzing STEP file with Gemini vision...")
+            analysis = analyze_step_file(file_path)
+            if analysis:
+                logger.info(f"Analysis completed: {analysis[:100]}...")
+        except Exception as e:
+            logger.warning(f"STEP file analysis failed: {e}", exc_info=True)
+            # Continue without analysis - don't fail the upload
+        
         if session_id:
             session = agent_runner.get_session(session_id)
             if session:
                 session.state.mesh = Mesh(**mesh_data)
+                # Inject analysis into agent context
+                if analysis:
+                    agent_runner.inject_step_analysis(session_id, analysis)
         
-        return mesh_data
+        # Return mesh data with analysis
+        result_data = mesh_data.copy()
+        if analysis:
+            result_data["analysis"] = analysis
+        
+        return result_data
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -104,6 +127,8 @@ async def upload_stl(file: UploadFile = File(...), session_id: str | None = None
             session = agent_runner.get_session(session_id)
             if session:
                 session.state.mesh = Mesh(**mesh_data)
+                # Notify agent about the uploaded mesh
+                agent_runner.notify_mesh_uploaded(session_id, file_type="STL", filename=file.filename)
         
         return mesh_data
     finally:

@@ -39,6 +39,46 @@ class AgentRunner:
         if session:
             session.history.append({"role": role, "content": content})
 
+    def inject_step_analysis(self, session_id: str, analysis: str) -> None:
+        """Inject STEP file analysis into the agent's conversation history."""
+        session = self.sessions.get(session_id)
+        if session:
+            analysis_message = f"The uploaded STEP file has been analyzed:\n\n{analysis}\n\nUse this information when working with the uploaded geometry."
+            # Insert after system prompt but before user messages
+            # Find the first user message or insert at position 1
+            insert_pos = 1
+            for i, msg in enumerate(session.history):
+                if msg.get("role") == "user":
+                    insert_pos = i
+                    break
+            session.history.insert(insert_pos, {"role": "system", "content": analysis_message})
+
+    def notify_mesh_uploaded(self, session_id: str, file_type: str = "STL", filename: str = "") -> None:
+        """Notify the agent that a mesh file has been uploaded."""
+        session = self.sessions.get(session_id)
+        if session and session.state.mesh and session.state.mesh.vertices:
+            vertex_count = len(session.state.mesh.vertices)
+            face_count = len(session.state.mesh.faces)
+            edge_count = len(session.state.mesh.edges)
+            
+            upload_message = f"A {file_type} file has been uploaded"
+            if filename:
+                upload_message += f" ({filename})"
+            upload_message += f". The mesh contains {vertex_count} vertices"
+            if face_count > 0:
+                upload_message += f", {face_count} faces"
+            if edge_count > 0:
+                upload_message += f", and {edge_count} edges"
+            upload_message += ". The mesh is now available in the session state. When the user asks about the uploaded file, use the inspect_mesh tool to examine the mesh structure and then describe what the object looks like based on the vertices, faces, and geometry."
+            
+            # Insert after system prompt but before user messages
+            insert_pos = 1
+            for i, msg in enumerate(session.history):
+                if msg.get("role") == "user":
+                    insert_pos = i
+                    break
+            session.history.insert(insert_pos, {"role": "system", "content": upload_message})
+
     def run_step(self, session_id: str) -> ToolResponse | None:
         session = self.sessions.get(session_id)
         if not session:

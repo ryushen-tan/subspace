@@ -6,3 +6,4 @@ from .verify import VerifyMeshTool
 from .render import RenderPreviewTool
 from .finalize import FinalizeTool
 from .finish_task import FinishTaskTool
+from .inspect import InspectMeshTool

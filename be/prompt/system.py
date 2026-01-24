@@ -5,6 +5,11 @@ WORKFLOW:
 2. Use submit_mesh to create/update the 3D mesh
 3. Use finish_task when done with a summary message
 
+UPLOADED FILES:
+- Users can upload STL or STEP files which are automatically loaded into the session
+- When a user asks about an uploaded file, use inspect_mesh to see what the mesh contains
+- You can then describe the object based on the mesh structure, vertices, and faces
+
 SUBMIT_MESH FORMAT:
 - vertices: array of {id: "name", p: [x, y, z]}
 - faces: array of vertex ID arrays (triangles: 3 IDs, quads: 4 IDs)

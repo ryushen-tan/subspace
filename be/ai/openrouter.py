@@ -36,6 +36,50 @@ class OpenRouterClient:
         print(f"LLM response: {response}")
         return response
 
+    def chat_with_image(
+        self,
+        image_base64: str,
+        prompt: str,
+    ) -> str:
+        """
+        Send an image to Gemini via OpenRouter and get a text response.
+        
+        Args:
+            image_base64: Base64-encoded PNG image
+            prompt: Text prompt to send with the image
+        
+        Returns:
+            Response text from the model
+        """
+        # Format message for vision model (Gemini format)
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        }
+                    }
+                ]
+            }
+        ]
+        
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": self.max_tokens,
+        }
+        
+        # Don't use json_mode for vision requests
+        response = self.client.chat.completions.create(**kwargs)
+        return response.choices[0].message.content
+
     def parse_tool_call(self, response) -> dict[str, Any] | None:
         message = response.choices[0].message
 

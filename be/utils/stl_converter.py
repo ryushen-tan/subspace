@@ -4,6 +4,52 @@ import sys
 import os
 from pathlib import Path
 
+try:
+    import cadquery as cq
+    CADQUERY_AVAILABLE = True
+except ImportError:
+    CADQUERY_AVAILABLE = False
+
+
+def step_to_stl(step_path: str, stl_path: str) -> dict:
+    """
+    Convert STEP file to STL file using CadQuery.
+    
+    Args:
+        step_path: Path to input STEP file
+        stl_path: Path to output STL file
+    
+    Returns:
+        dict with "success" (bool) and optional "error" (str) keys
+    """
+    if not CADQUERY_AVAILABLE:
+        return {"success": False, "error": "CadQuery is not available. Install cadquery and cadquery-ocp."}
+    
+    try:
+        if not os.path.exists(step_path):
+            return {"success": False, "error": f"STEP file not found: {step_path}"}
+        
+        # Load the STEP file
+        part = cq.importers.importStep(step_path)
+        
+        # Get the underlying shape
+        shape = part.val()
+        
+        # Export to STL
+        # Create output directory if it doesn't exist
+        os.makedirs(os.path.dirname(stl_path) if os.path.dirname(stl_path) else '.', exist_ok=True)
+        
+        # Export the shape to STL
+        cq.exporters.export(shape, stl_path)
+        
+        if not os.path.exists(stl_path):
+            return {"success": False, "error": "STL file was not created"}
+        
+        return {"success": True}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 def read_stl_binary(filepath):
     """Read binary STL file"""
     with open(filepath, 'rb') as f:
