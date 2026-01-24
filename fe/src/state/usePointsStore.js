@@ -2,11 +2,15 @@ import { create } from 'zustand';
 
 export const usePointsStore = create((set) => ({
   points: [
-    { id: '1', position: [0, 0, 0], color: '#ff6b6b' },
-    { id: '2', position: [1, 1, 0], color: '#4ecdc4' },
-    { id: '3', position: [-1, 1, 0], color: '#45b7d1' },
-    { id: '4', position: [0, 2, 1], color: '#f9ca24' },
-    { id: '5', position: [1, 0, -1], color: '#6c5ce7' },
+    // Cube vertices - 8 corners of a cube
+    { id: '1', position: [-0.5, -0.5, -0.5], color: '#ff6b6b' },
+    { id: '2', position: [0.5, -0.5, -0.5], color: '#4ecdc4' },
+    { id: '3', position: [0.5, 0.5, -0.5], color: '#45b7d1' },
+    { id: '4', position: [-0.5, 0.5, -0.5], color: '#f9ca24' },
+    { id: '5', position: [-0.5, -0.5, 0.5], color: '#6c5ce7' },
+    { id: '6', position: [0.5, -0.5, 0.5], color: '#a29bfe' },
+    { id: '7', position: [0.5, 0.5, 0.5], color: '#fd79a8' },
+    { id: '8', position: [-0.5, 0.5, 0.5], color: '#00b894' },
   ],
   isDragging: false,
   selectedPointIds: [],
