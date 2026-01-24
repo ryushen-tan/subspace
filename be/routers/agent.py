@@ -204,10 +204,16 @@ async def agent_ws(websocket: WebSocket):
             if message_type == "message":
                 content = payload.get("content", "")
                 agent_runner.add_message(session_id, "user", content)
+                # Reset flags to allow continued editing
                 session.state.task_complete = False
+                session.state.finalized = False
+                session.state.iteration = 0
+                print(f"Starting agent loop. task_complete={session.state.task_complete}, finalized={session.state.finalized}")
                 try:
                     while not session.state.task_complete and not session.state.finalized:
+                        print(f"Calling run_step, iteration={session.state.iteration}")
                         response = agent_runner.run_step(session_id)
+                        print(f"run_step returned: {response}")
                         await websocket.send_json({
                             "type": "response",
                             "response": response.model_dump() if response else None,

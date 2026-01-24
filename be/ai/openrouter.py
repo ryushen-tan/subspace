@@ -42,11 +42,20 @@ class OpenRouterClient:
         if message.tool_calls:
             tool_call = message.tool_calls[0]
             import json
+            try:
+                arguments = json.loads(tool_call.function.arguments)
+            except json.JSONDecodeError as e:
+                print(f"JSON parse error: {e}")
+                return {
+                    "type": "error",
+                    "id": tool_call.id,
+                    "error": f"Invalid JSON from LLM: {str(e)[:100]}",
+                }
             return {
                 "type": "tool",
                 "id": tool_call.id,
                 "name": tool_call.function.name,
-                "arguments": json.loads(tool_call.function.arguments),
+                "arguments": arguments,
             }
 
         if message.content:

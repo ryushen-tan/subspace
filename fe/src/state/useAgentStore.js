@@ -58,7 +58,10 @@ export const useAgentStore = create((set, get) => ({
 
     agentApi.onError = (error) => {
       console.error('Agent error:', error);
-      set({ isLoading: false });
+      set((s) => ({
+        messages: [...s.messages, { role: 'assistant', content: `Error: ${error}` }],
+        isLoading: false,
+      }));
     };
 
     try {

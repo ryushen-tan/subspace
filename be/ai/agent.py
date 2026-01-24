@@ -64,6 +64,11 @@ class AgentRunner:
             session.history.append({"role": "assistant", "content": content})
             return ToolResponse(id="no_tool", result={"message": content})
 
+        # Handle JSON parse errors from LLM
+        if tool_call_data.get("type") == "error":
+            session.state.task_complete = True
+            return ToolResponse(id=tool_call_data.get("id", "json_error"), error=tool_call_data.get("error"))
+
         tool_call = ToolCall(**tool_call_data)
         tool = tool_registry.get(tool_call.name)
 
