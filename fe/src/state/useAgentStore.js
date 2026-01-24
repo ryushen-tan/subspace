@@ -26,11 +26,12 @@ export const useAgentStore = create((set, get) => ({
     };
 
     agentApi.onStateUpdate = (state) => {
+      const isDone = state.finalized || state.task_complete;
       set({ 
         todo: state.todo || [],
         mesh: state.mesh,
-        finalized: state.finalized,
-        isLoading: false,
+        finalized: isDone,
+        isLoading: !isDone,
       });
 
       if (state.mesh?.vertices?.length > 0) {
