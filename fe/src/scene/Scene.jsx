@@ -1,11 +1,39 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import * as THREE from 'three';
 
-export function Scene() {
+function AnimatedGizmo({ isSidebarOpen, controlsRef }) {
+  const [margin, setMargin] = useState(isSidebarOpen ? 380 : 120);
+
+  useFrame((state, delta) => {
+    const targetMargin = isSidebarOpen ? 380 : 120;
+    // Smoothly interpolate margin
+    const newMargin = THREE.MathUtils.lerp(margin, targetMargin, delta * 10);
+    if (Math.abs(newMargin - margin) > 0.1) {
+      setMargin(newMargin);
+    }
+  });
+
+  return (
+    <GizmoHelper
+      alignment="bottom-right"
+      margin={[margin, 80]}
+      onUpdate={() => controlsRef.current?.update()}
+    >
+      <GizmoViewcube
+        color="#333"
+        strokeColor="#fff"
+        textColor="#fff"
+        hoverColor="#4a90d9"
+      />
+    </GizmoHelper>
+  );
+}
+
+export function Scene({ isSidebarOpen }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   
@@ -64,18 +92,7 @@ export function Scene() {
       <PointCloud />
 
       {/* ViewCube */}
-      <GizmoHelper
-        alignment="bottom-right"
-        margin={[80, 80]}
-        onUpdate={() => controlsRef.current?.update()}
-      >
-        <GizmoViewcube
-          color="#333"
-          strokeColor="#fff"
-          textColor="#fff"
-          hoverColor="#4a90d9"
-        />
-      </GizmoHelper>
+      <AnimatedGizmo isSidebarOpen={isSidebarOpen} controlsRef={controlsRef} />
     </Canvas>
   );
 }
