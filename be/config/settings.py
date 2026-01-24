@@ -3,9 +3,12 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    openrouter_api_key: str
+    llm_provider: str = "openrouter" # "gemini" or "openrouter"
+    openrouter_api_key: str | None = None
+    gemini_api_key: str | None = None
     openrouter_model: str = "google/gemini-3-flash-preview"
-    openrouter_max_tokens: int = 8192
+    gemini_model: str = "gemini-3-flash-preview"
+    openrouter_max_tokens: int = 24000
     max_agent_iterations: int = 20
 
     class Config:

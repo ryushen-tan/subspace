@@ -13,7 +13,7 @@ function MeshSurface({ mesh }) {
   if (!geometry) return null;
   return (
     <mesh geometry={geometry}>
-      <meshPhongMaterial color="#4f46e5" side={THREE.DoubleSide} transparent opacity={0.8} />
+      <meshPhongMaterial color="#4f46e5" side={THREE.DoubleSide} transparent opacity={0.8} flatShading />
     </mesh>
   );
 }

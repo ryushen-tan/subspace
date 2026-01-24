@@ -10,7 +10,12 @@ from config.settings import get_settings
 
 class AgentRunner:
     def __init__(self):
-        self.client = OpenRouterClient()
+        settings = get_settings()
+        if settings.llm_provider == "gemini":
+            from .gemini import GeminiClient
+            self.client = GeminiClient()
+        else:
+            self.client = OpenRouterClient()
         self.sessions: dict[str, Session] = {}
 
     def create_session(self, user_prompt: str = "", system_prompt_override: str | None = None) -> Session:
@@ -84,6 +89,7 @@ class AgentRunner:
             except Exception as e:
                 tool_response = ToolResponse(id=tool_call.id, error=str(e))
 
+        import json
         session.history.append({
             "role": "assistant",
             "content": None,
@@ -92,7 +98,7 @@ class AgentRunner:
                 "type": "function",
                 "function": {
                     "name": tool_call.name,
-                    "arguments": str(tool_call.arguments),
+                    "arguments": json.dumps(tool_call.arguments) if isinstance(tool_call.arguments, dict) else tool_call.arguments,
                 },
             }],
         })

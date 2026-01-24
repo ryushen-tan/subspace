@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import ControlsOverlay from './ControlsOverlay';
+import MarkdownContent from './MarkdownContent';
 
 const SidebarChat = ({ isOpen, setIsOpen }) => {
   const [input, setInput] = useState('');
@@ -126,7 +127,11 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                       : 'bg-white/5 text-gray-300 mr-4'
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === 'assistant' ? (
+                    <MarkdownContent content={msg.content} />
+                  ) : (
+                    msg.content
+                  )}
                 </motion.div>
               ))
             )}

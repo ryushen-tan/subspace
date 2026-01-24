@@ -25,34 +25,15 @@ export function buildMeshGeometry(mesh) {
 
   const indices = [];
   for (const f of faces) {
-    if (!Array.isArray(f) || (f.length !== 3 && f.length !== 4)) continue;
+    if (!Array.isArray(f) || f.length < 3) continue;
 
     const ids = f.map((x) => String(x));
-    const uniq = [...new Set(ids)];
-    if (uniq.length < 3) continue;
+    const resolved = ids.map((id) => idToIndex.get(id));
+    if (resolved.some((idx) => idx == null)) continue;
 
-    if (uniq.length === 3) {
-      const a = idToIndex.get(uniq[0]);
-      const b = idToIndex.get(uniq[1]);
-      const c = idToIndex.get(uniq[2]);
-      if (a == null || b == null || c == null) continue;
-      indices.push(a, b, c);
-      continue;
-    }
-
-    if (ids.length === 3) {
-      const a = idToIndex.get(ids[0]);
-      const b = idToIndex.get(ids[1]);
-      const c = idToIndex.get(ids[2]);
-      if (a == null || b == null || c == null) continue;
-      indices.push(a, b, c);
-    } else {
-      const a = idToIndex.get(ids[0]);
-      const b = idToIndex.get(ids[1]);
-      const c = idToIndex.get(ids[2]);
-      const d = idToIndex.get(ids[3]);
-      if (a == null || b == null || c == null || d == null) continue;
-      indices.push(a, b, c, a, c, d);
+    // Fan triangulation for any polygon (3+ vertices)
+    for (let i = 1; i < resolved.length - 1; i++) {
+      indices.push(resolved[0], resolved[i], resolved[i + 1]);
     }
   }
 
@@ -62,6 +43,7 @@ export function buildMeshGeometry(mesh) {
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
   return geometry;
 }
 
