@@ -39,6 +39,7 @@ CONTRACT (CRITICAL):
 COORDINATE SYSTEM:
 - Origin-centered, Y-up.
 - Keep model roughly within [-1, 1] unless you state otherwise.
+- Treat Y=0 as the build plane. Translate or author the mesh so the lowest vertex sits exactly on Y=0 (nothing may dip below this plane) while the rest of the geometry remains above it.
 
 ANNOTATION REQUIREMENTS (comments only):
 - Group vertices by body region and use id prefixes: `head_*`, `earL_*`, `earR_*`, `armL_*`, etc.

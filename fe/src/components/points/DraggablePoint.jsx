@@ -41,7 +41,7 @@ export function DraggablePoint({ point }) {
           document.body.style.cursor = 'default';
         }}
       >
-        <sphereGeometry args={[0.1, 16, 16]} />
+        <sphereGeometry args={[0.05, 16, 16]} />
         <meshStandardMaterial
           color={point.color || '#ff6b6b'}
           emissive={isSelected ? '#4a90d9' : (point.color || '#ff6b6b')}
