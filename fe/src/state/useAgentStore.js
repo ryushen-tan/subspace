@@ -10,6 +10,7 @@ export const useAgentStore = create((set, get) => ({
   isLoading: false,
   todo: [],
   messages: [],
+  toolCalls: [],
   mesh: null,
   finalized: false,
 
@@ -43,6 +44,17 @@ export const useAgentStore = create((set, get) => ({
     };
 
     agentApi.onMessage = (response) => {
+      if (response?.type === 'tool_response') {
+        const toolName = response.id?.replace(/^tool_/, '').replace(/_[A-Za-z0-9]+$/, '') || 'tool';
+        const resultStr = JSON.stringify(response.result || response.error || {});
+        set((s) => ({
+          toolCalls: [...s.toolCalls, {
+            name: toolName,
+            result: resultStr.length > 80 ? resultStr.slice(0, 80) + '...' : resultStr,
+            success: response.result?.success !== false && !response.error,
+          }],
+        }));
+      }
       const msg = response?.result?.message || response?.result?.summary;
       if (msg) {
         set((s) => ({
@@ -74,7 +86,9 @@ export const useAgentStore = create((set, get) => ({
   sendMessage: (content) => {
     set((s) => ({
       messages: [...s.messages, { role: 'user', content }],
+      toolCalls: [],
       isLoading: true,
+      finalized: false,
     }));
     agentApi.sendMessage(content);
   },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Wrench, Check } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import ControlsOverlay from './ControlsOverlay';
 
@@ -13,6 +13,8 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     isLoading,
     todo,
     messages,
+    toolCalls,
+    finalized,
     connect,
     sendMessage,
     uploadStepFile
@@ -74,24 +76,8 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
 
       {/* Chat Section */}
       <div className={`flex-1 flex flex-col min-w-[320px] transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="flex-1 p-4 overflow-y-auto space-y-4">
-          {/* Todo List */}
-          {todo.length > 0 && (
-            <div className="bg-white/5 rounded-xl p-3 space-y-2">
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide">Tasks</p>
-              {todo.map((task, i) => (
-                <div key={i} className={`flex items-start gap-2 text-sm ${task.done ? 'text-gray-500' : 'text-gray-300'}`}>
-                  {task.done ? (
-                    <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" />
-                  ) : (
-                    <Circle className="w-4 h-4 mt-0.5 text-gray-500 flex-shrink-0" />
-                  )}
-                  <span className={task.done ? 'line-through' : ''}>{task.text || task}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
+        {/* Scrollable Messages */}
+        <div className="flex-1 p-4 overflow-y-auto space-y-3">
           {/* Messages */}
           <AnimatePresence>
             {messages.length === 0 && todo.length === 0 ? (
@@ -122,15 +108,56 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
               ))
             )}
           </AnimatePresence>
+
+          {/* Tool Calls */}
+          {toolCalls.length > 0 && (
+            <div className="space-y-1">
+              {toolCalls.map((tool, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs text-gray-500 bg-white/5 rounded-lg px-2 py-1.5">
+                  <Wrench className={`w-3 h-3 mt-0.5 flex-shrink-0 ${tool.success ? 'text-blue-400' : 'text-red-400'}`} />
+                  <div className="min-w-0">
+                    <span className="font-medium text-gray-400">{tool.name}</span>
+                    <p className="text-gray-600 truncate">{tool.result}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           
+          {/* Status */}
           {isLoading && (
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Thinking...</span>
+              <span>Working...</span>
+            </div>
+          )}
+          {finalized && !isLoading && (
+            <div className="flex items-center gap-2 text-green-500 text-sm">
+              <Check className="w-4 h-4" />
+              <span>Completed</span>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Pinned Todo List */}
+        {todo.length > 0 && (
+          <div className="px-4 py-2 border-t border-white/5 bg-neutral-900/50">
+            <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-2">Tasks</p>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {todo.map((task, i) => (
+                <div key={i} className={`flex items-start gap-2 text-sm ${task.done ? 'text-gray-500' : 'text-gray-300'}`}>
+                  {task.done ? (
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-4 h-4 mt-0.5 text-gray-500 flex-shrink-0" />
+                  )}
+                  <span className={task.done ? 'line-through' : ''}>{task.text || task}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="p-4 border-t border-white/5 bg-transparent space-y-3">
           <div className="flex items-center gap-2">
