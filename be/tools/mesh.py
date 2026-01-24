@@ -46,12 +46,22 @@ class SubmitMeshTool(Tool):
     }
 
     def execute(self, state: AgentState, **kwargs) -> dict[str, Any]:
+        # Preserve existing mesh data (e.g., uploaded STL/STEP)
+        existing_vertices = list(state.mesh.vertices) if state.mesh else []
+        existing_edges = list(state.mesh.edges) if state.mesh else []
+        existing_faces = list(state.mesh.faces) if state.mesh else []
+        existing_ids = {v.id for v in existing_vertices}
+        
         raw_vertices = kwargs.get("vertices", [])
         vertices = []
         skipped = []
         for i, v in enumerate(raw_vertices):
             if isinstance(v, dict) and "id" in v and "p" in v and isinstance(v["p"], list) and len(v["p"]) >= 3:
-                vertices.append(Vertex(id=v["id"], p=tuple(v["p"][:3])))
+                vid = v["id"]
+                # Prefix ID if it conflicts with existing
+                if vid in existing_ids:
+                    vid = f"new_{vid}"
+                vertices.append(Vertex(id=vid, p=tuple(v["p"][:3])))
             else:
                 skipped.append({"index": i, "data": str(v)[:50]})
         
@@ -83,19 +93,22 @@ class SubmitMeshTool(Tool):
                         corrected_face.append(vid)
             corrected_faces.append(tuple(corrected_face))
 
+        # Merge with existing mesh data
         state.mesh = Mesh(
-            vertices=vertices,
-            edges=edges,
-            faces=corrected_faces,
+            vertices=existing_vertices + vertices,
+            edges=existing_edges + edges,
+            faces=existing_faces + corrected_faces,
             loops=loops,
             stitch=stitch,
         )
 
         result = {
             "success": True,
-            "vertex_count": len(vertices),
-            "edge_count": len(edges),
-            "face_count": len(corrected_faces),
+            "vertex_count": len(state.mesh.vertices),
+            "edge_count": len(state.mesh.edges),
+            "face_count": len(state.mesh.faces),
+            "new_vertices": len(vertices),
+            "preserved_vertices": len(existing_vertices),
         }
         if corrections:
             result["auto_corrections"] = corrections
