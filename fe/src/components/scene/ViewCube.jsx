@@ -2,21 +2,18 @@ import { GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import { useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 
-export function ViewCube({ controlsRef, isSidebarOpen }) {
-  const { size } = useThree();
+export function ViewCube({ controlsRef }) {
   
   // GizmoHelper margin: [horizontal, vertical]
-  // For "bottom" alignment, horizontal is offset from left
-  // To center: (screen width / 2) - (cube width / 2)
+  // For "top-left" alignment, position at top-left corner of canvas
+  // margin: [horizontal offset from left, vertical offset from top]
   const margin = useMemo(() => {
-    const cubeWidth = 80; // Actual viewcube width in pixels
-    const horizontalCenter = (size.width / 2) - (cubeWidth / 2);
-    return [horizontalCenter, 60];
-  }, [size.width]);
+    return [80, 80]; // 60px from left, 40px from top
+  }, []);
 
   return (
     <GizmoHelper
-      alignment="bottom"
+      alignment="top-left"
       margin={margin}
       onUpdate={() => controlsRef.current?.update?.()}
     >

@@ -7,6 +7,7 @@ import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
+import WorkspaceBottomBar from '../components/WorkspaceBottomBar';
 
 function MeshSurface({ mesh }) {
   const geometry = useMemo(() => buildMeshGeometry(mesh), [mesh]);
@@ -35,17 +36,18 @@ export function Scene({ isSidebarOpen }) {
   const mesh = useAgentStore((state) => state.mesh);
   
   return (
-    <Canvas
-      shadows
-      gl={{ antialias: true, alpha: true }}
-      style={{ width: '100%', height: '100vh', background: '#0a0a0a' }}
-      onPointerMissed={(e) => {
-        // Clear selection when clicking on empty space (not on a point)
-        if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-          clearSelection();
-        }
-      }}
-    >
+    <div className="absolute top-0 left-64 right-0 bottom-0">
+      <Canvas
+        shadows
+        gl={{ antialias: true, alpha: true }}
+        style={{ width: '100%', height: '100%', background: '#0a0a0a' }}
+        onPointerMissed={(e) => {
+          // Clear selection when clicking on empty space (not on a point)
+          if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+            clearSelection();
+          }
+        }}
+      >
       <PerspectiveCamera
         makeDefault
         position={[5, 5, 5]}
@@ -101,5 +103,7 @@ export function Scene({ isSidebarOpen }) {
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />
     </Canvas>
+    <WorkspaceBottomBar />
+    </div>
   );
 }
