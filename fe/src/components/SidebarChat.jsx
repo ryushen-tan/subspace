@@ -75,9 +75,9 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       </div>
 
       {/* Chat Section */}
-      <div className={`flex-1 flex flex-col min-w-[320px] transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`flex-1 flex flex-col min-w-[320px] min-h-0 overflow-hidden transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         {/* Scrollable Messages */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-3">
+        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3">
           {/* Messages */}
           <AnimatePresence>
             {messages.length === 0 && todo.length === 0 ? (
