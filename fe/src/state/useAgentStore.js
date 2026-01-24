@@ -43,9 +43,10 @@ export const useAgentStore = create((set, get) => ({
     };
 
     agentApi.onMessage = (response) => {
-      if (response?.result?.message) {
+      const msg = response?.result?.message || response?.result?.summary;
+      if (msg) {
         set((s) => ({
-          messages: [...s.messages, { role: 'assistant', content: response.result.message }],
+          messages: [...s.messages, { role: 'assistant', content: msg }],
           isLoading: false,
         }));
       } else if (response?.result?.tasks) {
