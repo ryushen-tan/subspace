@@ -13,12 +13,13 @@ class AgentRunner:
         self.client = OpenRouterClient()
         self.sessions: dict[str, Session] = {}
 
-    def create_session(self, user_prompt: str = "") -> Session:
+    def create_session(self, user_prompt: str = "", system_prompt_override: str | None = None) -> Session:
         session_id = str(uuid.uuid4())
+        system_content = system_prompt_override or system_prompt
         session = Session(
             id=session_id,
             user_prompt=user_prompt,
-            history=[{"role": "system", "content": system_prompt}],
+            history=[{"role": "system", "content": system_content}],
         )
         if user_prompt:
             session.history.append({"role": "user", "content": user_prompt})

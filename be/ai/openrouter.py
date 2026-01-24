@@ -11,6 +11,7 @@ class OpenRouterClient:
             api_key=settings.openrouter_api_key,
         )
         self.model = settings.openrouter_model
+        self.max_tokens = settings.openrouter_max_tokens
 
     def chat(
         self,
@@ -21,6 +22,7 @@ class OpenRouterClient:
         kwargs = {
             "model": self.model,
             "messages": messages,
+            "max_tokens": self.max_tokens,
         }
 
         if json_mode:
