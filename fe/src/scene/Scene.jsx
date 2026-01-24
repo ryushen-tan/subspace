@@ -1,23 +1,13 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Grid, PerspectiveCamera, GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
-
-function Controls() {
-  const isDragging = usePointsStore((state) => state.isDragging);
-  
-  return (
-    <OrbitControls
-      enablePan={!isDragging}
-      enableZoom={!isDragging}
-      enableRotate={!isDragging}
-      minDistance={2}
-      maxDistance={50}
-    />
-  );
-}
+import { useRef } from 'react';
 
 export function Scene() {
+  const controlsRef = useRef();
+  const isDragging = usePointsStore((state) => state.isDragging);
+  
   return (
     <Canvas
       shadows
@@ -53,10 +43,32 @@ export function Scene() {
       />
 
       {/* Controls */}
-      <Controls />
+      <OrbitControls
+        makeDefault
+        ref={controlsRef}
+        enablePan={!isDragging}
+        enableZoom={!isDragging}
+        enableRotate={!isDragging}
+        minDistance={2}
+        maxDistance={50}
+      />
 
       {/* Point Cloud */}
       <PointCloud />
+
+      {/* ViewCube */}
+      <GizmoHelper
+        alignment="bottom-right"
+        margin={[80, 80]}
+        onUpdate={() => controlsRef.current?.update()}
+      >
+        <GizmoViewcube
+          color="#333"
+          strokeColor="#fff"
+          textColor="#fff"
+          hoverColor="#4a90d9"
+        />
+      </GizmoHelper>
     </Canvas>
   );
 }
