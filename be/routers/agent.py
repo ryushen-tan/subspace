@@ -9,7 +9,7 @@ agent_runner = AgentRunner()
 
 
 class StartRequest(BaseModel):
-    prompt: str = ""
+    pass
 
 
 class MessageRequest(BaseModel):
@@ -23,8 +23,8 @@ class ToolResponseRequest(BaseModel):
 
 
 @router.post("/start")
-async def start_session(request: StartRequest):
-    session = agent_runner.create_session(request.prompt)
+async def start_session():
+    session = agent_runner.create_session()
     return {"session_id": session.id, "state": session.state}
 
 
