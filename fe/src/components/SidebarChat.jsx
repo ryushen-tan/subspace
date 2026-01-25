@@ -16,6 +16,9 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
   const Motion = motion;
   const [input, setInput] = useState('');
   const [selectedCommandIdx, setSelectedCommandIdx] = useState(0);
+  const [selectedMentionIdx, setSelectedMentionIdx] = useState(0);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [showMentions, setShowMentions] = useState(false);
   const messagesEndRef = useRef(null);
   
   const {
@@ -27,6 +30,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     finalized,
     sessionId,
     mesh,
+    objects,
     connect,
     sendMessage,
     uploadStepFile,
@@ -51,13 +55,58 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     return COMMANDS.filter(cmd => cmd.name.toLowerCase().startsWith(query));
   }, [input]);
 
+  const filteredMentions = useMemo(() => {
+    if (!showMentions) return [];
+    const query = mentionQuery.toLowerCase();
+    return objects.filter(obj => 
+      obj.name.toLowerCase().includes(query)
+    );
+  }, [showMentions, mentionQuery, objects]);
+
   const handleInputChange = (e) => {
-    setInput(e.target.value);
+    const value = e.target.value;
+    setInput(value);
     setSelectedCommandIdx(0);
+    
+    // Check for @ mention
+    const lastAtIndex = value.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const afterAt = value.slice(lastAtIndex + 1);
+      // Only show if @ is at start or preceded by whitespace, and followed by word chars or empty
+      const beforeAt = value.slice(0, lastAtIndex);
+      if ((beforeAt === '' || /\s$/.test(beforeAt)) && /^\w*$/.test(afterAt)) {
+        setMentionQuery(afterAt);
+        setShowMentions(true);
+        setSelectedMentionIdx(0);
+        return;
+      }
+    }
+    setShowMentions(false);
   };
 
   const handleKeyDown = (e) => {
-    if (filteredCommands.length > 0) {
+    if (showMentions && filteredMentions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIdx(i => Math.min(i + 1, filteredMentions.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIdx(i => Math.max(i - 1, 0));
+      } else if (e.key === 'Tab' || e.key === 'Enter') {
+        if (filteredMentions[selectedMentionIdx]) {
+          e.preventDefault();
+          const obj = filteredMentions[selectedMentionIdx];
+          const lastAtIndex = input.lastIndexOf('@');
+          const beforeAt = input.slice(0, lastAtIndex);
+          const afterMention = input.slice(lastAtIndex + 1 + mentionQuery.length);
+          setInput(beforeAt + '@' + obj.name + ' ' + afterMention);
+          setShowMentions(false);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentions(false);
+      }
+    } else if (filteredCommands.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedCommandIdx(i => Math.min(i + 1, filteredCommands.length - 1));
@@ -293,6 +342,41 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                   ))}
                 </Motion.div>
               )}
+              
+              {/* Mention Autocomplete Popup */}
+              {filteredMentions.length > 0 && (
+                <Motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-neutral-900 border border-white/10 rounded-xl overflow-hidden shadow-xl max-h-48 overflow-y-auto"
+                >
+                  {filteredMentions.map((obj, i) => (
+                    <div
+                      key={obj.id}
+                      onClick={() => {
+                        const lastAtIndex = input.lastIndexOf('@');
+                        const beforeAt = input.slice(0, lastAtIndex);
+                        const afterMention = input.slice(lastAtIndex + 1 + mentionQuery.length);
+                        setInput(beforeAt + '@' + obj.name + ' ' + afterMention);
+                        setShowMentions(false);
+                      }}
+                      className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
+                        i === selectedMentionIdx ? 'bg-indigo-600/30' : 'hover:bg-white/5'
+                      }`}
+                    >
+                      <div 
+                        className="w-3 h-3 rounded-sm flex-shrink-0" 
+                        style={{ backgroundColor: obj.color || '#4F46E5' }}
+                      />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-gray-200">{obj.name}</div>
+                        <div className="text-xs text-gray-500 truncate">Object</div>
+                      </div>
+                    </div>
+                  ))}
+                </Motion.div>
+              )}
             </AnimatePresence>
 
             <div className="flex items-center">
@@ -301,7 +385,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Type / for commands..."
+                placeholder="Type / for commands or @ for objects..."
                 disabled={isLoading}
                 className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50"
               />
