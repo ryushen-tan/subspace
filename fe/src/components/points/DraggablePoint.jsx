@@ -1,16 +1,17 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { TransformControls } from '@react-three/drei';
 import { usePointsStore } from '../../state/usePointsStore';
+import { useAgentStore } from '../../state/useAgentStore';
 
 export function DraggablePoint({ point }) {
   const meshRef = useRef(null);
   const lastPositionRef = useRef(null);
   const updatePoint = usePointsStore((state) => state.updatePoint);
-  const updatePoints = usePointsStore((state) => state.updatePoints);
   const selectPoint = usePointsStore((state) => state.selectPoint);
   const selectedPointIds = usePointsStore((state) => state.selectedPointIds);
   const points = usePointsStore((state) => state.points);
   const setDragging = usePointsStore((state) => state.setDragging);
+  const updateVertexPosition = useAgentStore((state) => state.updateVertexPosition);
   const isSelected = selectedPointIds.includes(point.id);
   const isPrimarySelected = selectedPointIds.length > 0 && selectedPointIds[0] === point.id;
   const isMultiSelected = selectedPointIds.length > 1 && isSelected;
@@ -90,21 +91,28 @@ export function DraggablePoint({ point }) {
               const dy = y - lastPositionRef.current.y;
               const dz = z - lastPositionRef.current.z;
               
-              const updates = {};
               selectedPointIds.forEach(id => {
                 const p = points.find(pt => pt.id === id);
                 if (p) {
-                  updates[id] = [
+                  const nextPos = [
                     p.position[0] + dx,
                     p.position[1] + dy,
                     p.position[2] + dz,
                   ];
+                  updatePoint(id, nextPos);
+                  if (p.objectId) {
+                    const bareId = id.includes(':') ? id.split(':').pop() : id;
+                    updateVertexPosition(p.objectId, bareId, nextPos);
+                  }
                 }
               });
-              updatePoints(updates);
               lastPositionRef.current = { x, y, z };
             } else {
               updatePoint(point.id, [x, y, z]);
+              if (point.objectId) {
+                const bareId = point.id.includes(':') ? point.id.split(':').pop() : point.id;
+                updateVertexPosition(point.objectId, bareId, [x, y, z]);
+              }
             }
           }}
         />

@@ -34,7 +34,6 @@ export function Scene({ isSidebarOpen }) {
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
   const points = usePointsStore((state) => state.points);
-  const mesh = useAgentStore((state) => state.mesh);
   const objects = useAgentStore((state) => state.objects);
   
   const pointOverrides = useMemo(() => {
@@ -105,12 +104,10 @@ export function Scene({ isSidebarOpen }) {
       <PointCloud />
 
       {/* Mesh Surface & Edges */}
-      <MeshSurface mesh={mesh} pointOverrides={pointOverrides} />
-      <MeshEdges mesh={mesh} pointOverrides={pointOverrides} />
       {objects.map((obj) => (
         <group key={obj.id} visible={obj.visible}>
-          <MeshSurface mesh={obj.mesh} />
-          <MeshEdges mesh={obj.mesh} />
+          <MeshSurface mesh={obj.mesh} pointOverrides={pointOverrides} />
+          <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} />
         </group>
       ))}
 
