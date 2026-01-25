@@ -101,7 +101,7 @@ async def upload_step(file: UploadFile = File(...), session_id: str | None = Non
 
 @router.post("/upload-stl")
 async def upload_stl(file: UploadFile = File(...), session_id: str | None = None):
-    if not file.filename.endswith('.stl'):
+    if not file.filename.lower().endswith('.stl'):
         raise HTTPException(status_code=400, detail="Only .stl files are allowed")
 
     temp_dir = "temp_uploads"
