@@ -154,8 +154,8 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
       {/* Grid Helper */}
       <Grid
         args={[50, 50]}
-        cellColor="#6f6f6f"
-        sectionColor="#9d4b4b"
+        cellColor="#ffffff"
+        sectionColor="#ffffff"
         cellThickness={0.5}
         sectionThickness={1}
         fadeDistance={60}
