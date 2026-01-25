@@ -214,7 +214,8 @@ export const useAgentStore = create((set, get) => ({
       const objectId = `obj-${Date.now()}-${s.objects.length + 1}`;
       createdId = objectId;
       objectName = name || `Obj ${s.timelineSteps.length + 1}`;
-      const newObject = { id: objectId, name: objectName, mesh: finalMesh, visible: true, signature: finalSig };
+      const color = COLORS[s.objects.length % COLORS.length];
+      const newObject = { id: objectId, name: objectName, mesh: finalMesh, visible: true, signature: finalSig, color };
 
       return {
         // Keep all existing objects with their current visibility
@@ -250,6 +251,13 @@ export const useAgentStore = create((set, get) => ({
     set((state) => ({
       objects: state.objects.map((obj) =>
         obj.id === objectId ? { ...obj, name: name || obj.name } : obj
+      ),
+    })),
+
+  updateObjectColor: (objectId, color) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === objectId ? { ...obj, color } : obj
       ),
     })),
 

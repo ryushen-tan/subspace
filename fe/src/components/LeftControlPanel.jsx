@@ -8,9 +8,76 @@ const LeftControlPanel = () => {
   const toggleObjectVisibility = useAgentStore((state) => state.toggleObjectVisibility);
   const renameObject = useAgentStore((state) => state.renameObject);
   const deleteObject = useAgentStore((state) => state.deleteObject);
+  const updateObjectColor = useAgentStore((state) => state.updateObjectColor);
 
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
+  const [hexValues, setHexValues] = useState({});
+
+  useEffect(() => {
+    // Sync local hex cache when objects list changes
+    const next = {};
+    objects.forEach((obj) => {
+      next[obj.id] = obj.color || '#4F46E5';
+    });
+    setHexValues(next);
+  }, [objects]);
+
+  const hslToHex = (h, s, l) => {
+    // h:0-360, s/l:0-100
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const to255 = (x) => Math.round(255 * x)
+      .toString(16)
+      .padStart(2, '0');
+    return `#${to255(f(0))}${to255(f(8))}${to255(f(4))}`.toUpperCase();
+  };
+
+  const hexToHsl = (hex) => {
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(ch => ch + ch).join('');
+    const num = parseInt(c, 16);
+    const r = ((num >> 16) & 255) / 255;
+    const g = ((num >> 8) & 255) / 255;
+    const b = (num & 255) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s; const l = (max + min) / 2;
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        default: h = (r - g) / d + 4; break;
+      }
+      h *= 60;
+    }
+    return { h, s: s * 100, l: l * 100 };
+  };
+
+  const handleColorDrag = (e, object) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+    const h = (x / rect.width) * 360;
+    const l = 70 - (y / rect.height) * 30; // 70 -> 40 range
+    const hex = hslToHex(h, 85, l);
+    setHexValues((prev) => ({ ...prev, [object.id]: hex }));
+    updateObjectColor(object.id, hex);
+  };
+
+  const handleHexInput = (val, object) => {
+    const normalized = val.startsWith('#') ? val : `#${val}`;
+    if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(normalized)) {
+      const clean = normalized.toUpperCase();
+      setHexValues((prev) => ({ ...prev, [object.id]: clean }));
+      updateObjectColor(object.id, clean);
+    }
+  };
   const [isOpen, setIsOpen] = useState(true);
 
   const togglePanel = () => setIsOpen(!isOpen);
@@ -128,65 +195,107 @@ const LeftControlPanel = () => {
                 No objects yet. Upload a STEP/STL file or let the agent generate geometry.
               </div>
             )}
-            {objects.map((object) => (
-              <div
-                key={object.id}
-                className="flex items-center justify-between p-2 bg-neutral-900/50 border border-white/5 rounded-lg hover:bg-neutral-900 transition-colors"
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {editingId === object.id ? (
-                    <input
-                      autoFocus
-                      value={draftName}
-                      onChange={(e) => setDraftName(e.target.value)}
-                      onBlur={() => {
-                        renameObject(object.id, draftName.trim() || object.name);
-                        setEditingId(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          renameObject(object.id, draftName.trim() || object.name);
-                          setEditingId(null);
-                        }
-                        if (e.key === 'Escape') {
-                          setEditingId(null);
+            {objects.map((object) => {
+              const color = hexValues[object.id] || object.color || '#4f46e5';
+              const { h, l } = hexToHsl(color);
+              const markerX = `${(h / 360) * 100}%`;
+              const markerY = `${((70 - l) / 30) * 100}%`;
+
+              return (
+                <div
+                  key={object.id}
+                  className="p-3 bg-neutral-900/50 border border-white/5 rounded-lg hover:bg-neutral-900 transition-colors space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {editingId === object.id ? (
+                        <input
+                          autoFocus
+                          value={draftName}
+                          onChange={(e) => setDraftName(e.target.value)}
+                          onBlur={() => {
+                            renameObject(object.id, draftName.trim() || object.name);
+                            setEditingId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              renameObject(object.id, draftName.trim() || object.name);
+                              setEditingId(null);
+                            }
+                            if (e.key === 'Escape') {
+                              setEditingId(null);
+                              setDraftName(object.name);
+                            }
+                          }}
+                          className="w-full bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-300 truncate" title={object.name}>{object.name}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
+                        onClick={() => {
+                          setEditingId(object.id);
                           setDraftName(object.name);
-                        }
+                        }}
+                        aria-label="Rename object"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors"
+                        onClick={() => deleteObject(object.id)}
+                        aria-label="Delete object"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
+                        onClick={() => toggleObjectVisibility(object.id)}
+                        aria-label={object.visible ? 'Hide object' : 'Show object'}
+                      >
+                        {object.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Color picker */}
+                  <div className="space-y-2">
+                    <div
+                      className="relative h-20 rounded-md cursor-crosshair overflow-hidden border border-white/10"
+                      onMouseDown={(e) => handleColorDrag(e, object)}
+                      onMouseMove={(e) => { if (e.buttons === 1) handleColorDrag(e, object); }}
+                      style={{
+                        background: 'linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)',
                       }}
-                      className="w-full bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-300 truncate" title={object.name}>{object.name}</span>
-                  )}
+                    >
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.5), rgba(0,0,0,0))' }} />
+                      <div
+                        className="absolute w-3 h-3 border border-white rounded-sm shadow"
+                        style={{ left: markerX, top: markerY, transform: 'translate(-50%, -50%)', background: color }}
+                        aria-hidden
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded border border-white/10" style={{ background: color }} />
+                      <input
+                        type="text"
+                        value={hexValues[object.id] || color}
+                        onChange={(e) => setHexValues((prev) => ({ ...prev, [object.id]: e.target.value }))}
+                        onBlur={(e) => handleHexInput(e.target.value, object)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleHexInput(e.currentTarget.value, object);
+                        }}
+                        className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                        placeholder="#4F46E5"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
-                    onClick={() => {
-                      setEditingId(object.id);
-                      setDraftName(object.name);
-                    }}
-                    aria-label="Rename object"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors"
-                    onClick={() => deleteObject(object.id)}
-                    aria-label="Delete object"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
-                    onClick={() => toggleObjectVisibility(object.id)}
-                    aria-label={object.visible ? 'Hide object' : 'Show object'}
-                  >
-                    {object.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         </div>
