@@ -161,6 +161,8 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     // Keyboard shortcut: press "R" to start auto-rotate
     const handler = (event) => {
       if (event.key?.toLowerCase() !== 'r') return;
+      // Don't intercept if a modifier key is held (CMD, CTRL, ALT, SHIFT)
+      if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
       // Avoid triggering while typing in inputs/textareas/contenteditable
       const target = event.target;
       const tag = target?.tagName;
