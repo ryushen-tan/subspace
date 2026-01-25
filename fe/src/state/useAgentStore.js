@@ -113,29 +113,68 @@ export const useAgentStore = create((set, get) => ({
     });
   },
   
+  // Undo/Redo helpers
+  undo: () => {
+    const { currentStepIndex } = get();
+    if (currentStepIndex > 0) {
+      get().scrubToStep(currentStepIndex - 1);
+    }
+  },
+  redo: () => {
+    const { currentStepIndex, timelineSteps } = get();
+    if (currentStepIndex < timelineSteps.length - 1) {
+      get().scrubToStep(currentStepIndex + 1);
+    }
+  },
+  
   scrubToStep: (stepIndex) => {
     const state = get();
     if (stepIndex < 0 || stepIndex >= state.timelineSteps.length) return;
     
     const step = state.timelineSteps[stepIndex];
     
-    // Update visibility of all objects up to this step
+    // Compute latest mesh snapshot per object up to this step
+    const latestMeshByObject = new Map();
     const visibleObjectIds = new Set();
     for (let i = 0; i <= stepIndex; i++) {
       const s = state.timelineSteps[i];
-      if (s.objectId) visibleObjectIds.add(s.objectId);
+      if (s.objectId) {
+        visibleObjectIds.add(s.objectId);
+        if (s.mesh) latestMeshByObject.set(s.objectId, s.mesh);
+      }
     }
-    
+
     // Restore messages up to this point
     const messages = state.timelineSteps.slice(0, stepIndex + 1)
       .flatMap(s => s.messages || []);
-    
+
+    // Build restored objects with mesh and visibility
+    const restoredObjects = state.objects.map((obj) => {
+      const restoredMesh = latestMeshByObject.get(obj.id) || obj.mesh;
+      return {
+        ...obj,
+        mesh: restoredMesh,
+        visible: visibleObjectIds.has(obj.id),
+      };
+    });
+
+    // Sync points for each object to reflect restored meshes
+    restoredObjects.forEach((obj) => {
+      const verts = obj.mesh?.vertices || [];
+      const points = verts.map((v, i) => ({
+        id: v.id,
+        position: v.p,
+        color: COLORS[i % COLORS.length],
+      }));
+      usePointsStore.getState().setPointsForObject(obj.id, points);
+      if (!obj.visible) {
+        usePointsStore.getState().clearSelectionForObject(obj.id);
+      }
+    });
+
     set({
       currentStepIndex: stepIndex,
-      objects: state.objects.map(obj => ({
-        ...obj,
-        visible: visibleObjectIds.has(obj.id)
-      })),
+      objects: restoredObjects,
       messages,
       activeObjectId: step.objectId || state.activeObjectId,
       mesh: step.mesh || state.mesh,
@@ -222,19 +261,42 @@ export const useAgentStore = create((set, get) => ({
     return createdId;
   },
 
-  renameObject: (objectId, name) =>
+  renameObject: (objectId, name) => {
+    const prev = get().objects.find((o) => o.id === objectId);
+    const oldName = prev?.name;
     set((state) => ({
       objects: state.objects.map((obj) =>
         obj.id === objectId ? { ...obj, name: name || obj.name } : obj
       ),
-    })),
+    }));
+    const updated = get().objects.find((o) => o.id === objectId);
+    if (updated) {
+      get().addTimelineStep({
+        objectId,
+        name: `Renamed ${oldName || updated.name} → ${name || updated.name}`,
+        mesh: updated.mesh,
+        timestamp: Date.now(),
+      });
+    }
+  },
 
-  updateObjectColor: (objectId, color) =>
+  updateObjectColor: (objectId, color) => {
+    const before = get().objects.find((o) => o.id === objectId);
     set((state) => ({
       objects: state.objects.map((obj) =>
         obj.id === objectId ? { ...obj, color } : obj
       ),
-    })),
+    }));
+    const after = get().objects.find((o) => o.id === objectId);
+    if (after) {
+      get().addTimelineStep({
+        objectId,
+        name: `Changed color of ${after.name || 'object'} to ${color}`,
+        mesh: after.mesh,
+        timestamp: Date.now(),
+      });
+    }
+  },
 
   translateObject: (objectId, delta) =>
     set((state) => {
@@ -338,7 +400,9 @@ export const useAgentStore = create((set, get) => ({
       };
     }),
 
-  toggleObjectVisibility: (objectId) =>
+  toggleObjectVisibility: (objectId) => {
+    const before = get().objects.find((o) => o.id === objectId);
+    const wasVisible = before?.visible;
     set((state) => {
       const updated = state.objects.map((obj) =>
         obj.id === objectId ? { ...obj, visible: !obj.visible } : obj
@@ -348,7 +412,17 @@ export const useAgentStore = create((set, get) => ({
         usePointsStore.getState().clearSelectionForObject(objectId);
       }
       return { objects: updated };
-    }),
+    });
+    const after = get().objects.find((o) => o.id === objectId);
+    if (after) {
+      get().addTimelineStep({
+        objectId,
+        name: wasVisible ? `Hid ${after.name || 'object'}` : `Showed ${after.name || 'object'}`,
+        mesh: after.mesh,
+        timestamp: Date.now(),
+      });
+    }
+  },
 
   connect: async (initialPrompt = '') => {
     set({ 
