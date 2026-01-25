@@ -24,6 +24,59 @@ const DEFAULT_CUBE_MESH = {
     ['2', '6', '7', '3'], // right
   ],
   edges: [],
+  loops: null,
+  stitch: null,
+  scale_factor: 1,
+};
+
+const meshesAreEqual = (a, b) => {
+  if (!a || !b) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch (err) {
+    console.warn('Mesh comparison failed', err);
+    return false;
+  }
+};
+
+const meshSignature = (mesh) => {
+  if (!mesh) return '';
+  try {
+    const verts = (mesh.vertices || []).map((v) => `${v.id}:${v.p.join(',')}`).sort();
+    const edges = (mesh.edges || []).map((e) => e.join('-')).sort();
+    const faces = (mesh.faces || []).map((f) => f.join(',')).sort();
+    const loopNames = mesh.loops ? Object.keys(mesh.loops).sort() : [];
+    const loops = loopNames.map((k) => `${k}:${(mesh.loops[k] || []).join(',')}`);
+    const stitch = (mesh.stitch || []).map((s) => s.join('-')).sort();
+    return [verts.join('|'), edges.join('|'), faces.join('|'), loops.join('|'), stitch.join('|')].join('::');
+  } catch (err) {
+    console.warn('Mesh signature failed', err);
+    return '';
+  }
+};
+
+const extractDeltaMesh = (prev, next) => {
+  if (!prev || !next) return next;
+  const prevIds = new Set((prev.vertices || []).map((v) => String(v.id)));
+  const nextVerts = next.vertices || [];
+  const newVertices = nextVerts.filter((v) => !prevIds.has(String(v.id)));
+
+  // If nothing new, keep next as-is
+  if (!newVertices.length) return next;
+
+  const newIdSet = new Set(newVertices.map((v) => String(v.id)));
+
+  const pickEdges = (next.edges || []).filter((e) => newIdSet.has(String(e[0])) && newIdSet.has(String(e[1])));
+  const pickFaces = (next.faces || []).filter((f) => f.some((vid) => newIdSet.has(String(vid))));
+
+  return {
+    vertices: newVertices,
+    edges: pickEdges,
+    faces: pickFaces,
+    loops: null,
+    stitch: null,
+    scale_factor: next.scale_factor || 1,
+  };
 };
 
 export const useAgentStore = create((set, get) => ({
@@ -33,8 +86,155 @@ export const useAgentStore = create((set, get) => ({
   todo: [],
   messages: [],
   toolCalls: [],
-  mesh: DEFAULT_CUBE_MESH,
+  mesh: null,
+  objects: [],
+  activeObjectId: null,
   finalized: false,
+
+  addMeshObject: (mesh, name) => {
+    if (!mesh?.vertices?.length) return null;
+
+    const state = get();
+    const sig = meshSignature(mesh);
+    const existing = state.objects.find((obj) => (obj.signature || meshSignature(obj.mesh)) === sig);
+    if (existing) {
+      set((s) => ({
+        objects: s.objects.map((obj) => ({
+          ...obj,
+          visible: obj.id === existing.id,
+        })),
+        activeObjectId: existing.id,
+        mesh: existing.mesh,
+      }));
+      return existing.id;
+    }
+
+    // If new mesh has no unseen vertices AND no moved vertices relative to any existing object, treat as already represented
+    const incomingVerts = mesh.vertices || [];
+    const knownVerts = state.objects.flatMap((obj) => obj.mesh?.vertices || []);
+    const knownIdToPos = new Map(knownVerts.map((v) => [String(v.id), v.p]));
+
+    const incomingIds = incomingVerts.map((v) => String(v.id));
+    const newIds = incomingIds.filter((id) => !knownIdToPos.has(id));
+
+    const movedIds = incomingVerts.filter((v) => {
+      const known = knownIdToPos.get(String(v.id));
+      if (!known) return false;
+      return known[0] !== v.p[0] || known[1] !== v.p[1] || known[2] !== v.p[2];
+    });
+
+    if (newIds.length === 0 && movedIds.length === 0) {
+      // No new or moved geometry; focus last object and bail
+      const last = state.objects[state.objects.length - 1];
+      if (last) {
+        set((s) => ({
+          objects: s.objects.map((obj) => ({ ...obj, visible: obj.id === last.id })),
+          activeObjectId: last.id,
+          mesh: last.mesh,
+        }));
+        return last.id;
+      }
+      return null;
+    }
+
+    // If previous layer exists and new mesh contains prior geometry plus additions, isolate only the new geometry
+    const prev = state.objects[state.objects.length - 1]?.mesh;
+    const maybeDelta = extractDeltaMesh(prev, mesh);
+    const finalMesh = maybeDelta || mesh;
+    const finalSig = meshSignature(finalMesh);
+
+    let createdId = null;
+    set((s) => {
+      const objectId = `obj-${Date.now()}-${s.objects.length + 1}`;
+      createdId = objectId;
+      const label = name || `Object ${s.objects.length + 1}`;
+      const newObject = { id: objectId, name: label, mesh: finalMesh, visible: true, signature: finalSig };
+
+      return {
+        // Only the latest object stays visible to avoid duplicate geometry overlay; others remain but hidden
+        objects: [...s.objects.map((obj) => ({ ...obj, visible: false })), newObject],
+        mesh: finalMesh,
+        activeObjectId: objectId,
+      };
+    });
+
+    if (createdId) {
+      const points = finalMesh.vertices.map((v, i) => ({
+        id: v.id,
+        position: v.p,
+        color: COLORS[i % COLORS.length],
+      }));
+      usePointsStore.getState().setPointsForObject(createdId, points);
+    }
+
+    return createdId;
+  },
+
+  renameObject: (objectId, name) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === objectId ? { ...obj, name: name || obj.name } : obj
+      ),
+    })),
+
+  deleteObject: (objectId) =>
+    set((state) => {
+      const remaining = state.objects.filter((obj) => obj.id !== objectId);
+      usePointsStore.getState().clearPointsForObject(objectId);
+      usePointsStore.getState().clearSelectionForObject(objectId);
+
+      const fallback = remaining[remaining.length - 1];
+      return {
+        objects: remaining,
+        activeObjectId: fallback?.id || null,
+        mesh: fallback?.mesh || null,
+      };
+    }),
+
+  updateVertexPosition: (objectId, vertexId, position) =>
+    set((state) => {
+      let nextObjects = state.objects;
+
+      nextObjects = state.objects.map((obj) => {
+        if (obj.id !== objectId) return obj;
+        const updatedVerts = (obj.mesh?.vertices || []).map((v) =>
+          String(v.id) === String(vertexId) ? { ...v, p: position } : v
+        );
+        const updatedMesh = { ...obj.mesh, vertices: updatedVerts };
+        const updatedSignature = meshSignature(updatedMesh);
+        return { ...obj, mesh: updatedMesh, signature: updatedSignature };
+      });
+
+      const active = nextObjects.find((o) => o.id === state.activeObjectId) || nextObjects[nextObjects.length - 1] || null;
+
+      // Keep points in sync for this object
+      const targetObj = nextObjects.find((o) => o.id === objectId);
+      if (targetObj?.mesh?.vertices?.length) {
+        const points = targetObj.mesh.vertices.map((v, i) => ({
+          id: v.id,
+          position: v.p,
+          color: COLORS[i % COLORS.length],
+        }));
+        usePointsStore.getState().setPointsForObject(objectId, points);
+      }
+
+      return {
+        objects: nextObjects,
+        mesh: active?.mesh || null,
+      };
+    }),
+
+  toggleObjectVisibility: (objectId) =>
+    set((state) => {
+      const updated = state.objects.map((obj) =>
+        obj.id === objectId ? { ...obj, visible: !obj.visible } : obj
+      );
+      const toggled = updated.find((obj) => obj.id === objectId);
+      if (toggled && !toggled.visible) {
+        usePointsStore.getState().clearSelectionForObject(objectId);
+      }
+      return { objects: updated };
+    }),
 
   connect: async (initialPrompt = '') => {
     set({ isLoading: true });
@@ -51,18 +251,13 @@ export const useAgentStore = create((set, get) => ({
       const isDone = state.finalized || state.task_complete;
       set({ 
         todo: state.todo || [],
-        mesh: state.mesh,
         finalized: isDone,
         isLoading: !isDone,
       });
 
       if (state.mesh?.vertices?.length > 0) {
-        const points = state.mesh.vertices.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPoints(points);
+        const label = state.iteration != null ? `Step ${state.iteration}` : undefined;
+        get().addMeshObject(state.mesh, label);
       }
     };
 
@@ -121,17 +316,9 @@ export const useAgentStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const mesh = await agentApi.uploadStepFile(file, sessionId);
-      set({ mesh, isLoading: false });
-      
-      if (mesh.vertices?.length > 0) {
-        const points = mesh.vertices.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPoints(points);
-      }
-      
+      set({ isLoading: false });
+      get().addMeshObject(mesh, file.name || 'Upload');
+
       set((s) => ({
         messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
       }));
@@ -149,17 +336,9 @@ export const useAgentStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const mesh = await agentApi.uploadStlFile(file, sessionId);
-      set({ mesh, isLoading: false });
-      
-      if (mesh.vertices?.length > 0) {
-        const points = mesh.vertices.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPoints(points);
-      }
-      
+      set({ isLoading: false });
+      get().addMeshObject(mesh, file.name || 'Upload');
+
       set((s) => ({
         messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
       }));

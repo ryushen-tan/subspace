@@ -1,11 +1,15 @@
-import React from 'react';
-import { Home, X, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, EyeOff, Layers, Pencil, Trash2 } from 'lucide-react';
+import { useAgentStore } from '../state/useAgentStore';
 
 const LeftControlPanel = () => {
-  const layers = [
-    { id: 1, name: 'Layer 1' },
-    { id: 2, name: 'Layer 2' },
-  ];
+  const objects = useAgentStore((state) => state.objects);
+  const toggleObjectVisibility = useAgentStore((state) => state.toggleObjectVisibility);
+  const renameObject = useAgentStore((state) => state.renameObject);
+  const deleteObject = useAgentStore((state) => state.deleteObject);
+
+  const [editingId, setEditingId] = useState(null);
+  const [draftName, setDraftName] = useState('');
 
   return (
     <div className="absolute top-0 left-0 bottom-0 w-64 bg-neutral-950/95 backdrop-blur-md border-r border-white/10 z-10 overflow-y-auto">
@@ -85,31 +89,74 @@ const LeftControlPanel = () => {
           </div>
         </div>
 
-        {/* Layers Section */}
+        {/* Objects Section */}
         <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Layers</h3>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            <Layers className="w-4 h-4" />
+            <span>Objects</span>
+          </div>
           <div className="space-y-2">
-            {layers.map((layer) => (
+            {objects.length === 0 && (
+              <div className="p-3 text-sm text-gray-500 bg-neutral-900/50 border border-white/5 rounded-lg">
+                No objects yet. Upload a STEP/STL file or let the agent generate geometry.
+              </div>
+            )}
+            {objects.map((object) => (
               <div
-                key={layer.id}
+                key={object.id}
                 className="flex items-center justify-between p-2 bg-neutral-900/50 border border-white/5 rounded-lg hover:bg-neutral-900 transition-colors"
               >
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="text-sm text-gray-300">{layer.name}</span>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {editingId === object.id ? (
+                    <input
+                      autoFocus
+                      value={draftName}
+                      onChange={(e) => setDraftName(e.target.value)}
+                      onBlur={() => {
+                        renameObject(object.id, draftName.trim() || object.name);
+                        setEditingId(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          renameObject(object.id, draftName.trim() || object.name);
+                          setEditingId(null);
+                        }
+                        if (e.key === 'Escape') {
+                          setEditingId(null);
+                          setDraftName(object.name);
+                        }
+                      }}
+                      className="w-full bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-300 truncate" title={object.name}>{object.name}</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-300 transition-colors">
-                    <Home className="w-4 h-4" />
+                  <button
+                    className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
+                    onClick={() => {
+                      setEditingId(object.id);
+                      setDraftName(object.name);
+                    }}
+                    aria-label="Rename object"
+                  >
+                    <Pencil className="w-4 h-4" />
                   </button>
-                  {layer.id === 1 ? (
-                    <button className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-300 transition-colors">
-                      <Settings className="w-4 h-4" />
-                    </button>
-                  )}
+                  <button
+                    className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors"
+                    onClick={() => deleteObject(object.id)}
+                    aria-label="Delete object"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
+                    onClick={() => toggleObjectVisibility(object.id)}
+                    aria-label={object.visible ? 'Hide object' : 'Show object'}
+                  >
+                    {object.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             ))}

@@ -35,6 +35,7 @@ export function Scene({ isSidebarOpen }) {
   const clearSelection = usePointsStore((state) => state.clearSelection);
   const points = usePointsStore((state) => state.points);
   const mesh = useAgentStore((state) => state.mesh);
+  const objects = useAgentStore((state) => state.objects);
   
   const pointOverrides = useMemo(() => {
     const map = new Map();
@@ -106,6 +107,12 @@ export function Scene({ isSidebarOpen }) {
       {/* Mesh Surface & Edges */}
       <MeshSurface mesh={mesh} pointOverrides={pointOverrides} />
       <MeshEdges mesh={mesh} pointOverrides={pointOverrides} />
+      {objects.map((obj) => (
+        <group key={obj.id} visible={obj.visible}>
+          <MeshSurface mesh={obj.mesh} />
+          <MeshEdges mesh={obj.mesh} />
+        </group>
+      ))}
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />

@@ -13,10 +13,24 @@ class AgentWebSocket {
 
   connect(initialPrompt = '') {
     return new Promise((resolve, reject) => {
+      // Prevent double-connecting while a socket is already open/connecting
+      if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+        if (this.sessionId) {
+          resolve(this.sessionId);
+          return;
+        }
+        // If connecting without a session yet, wait for open/close and then continue
+        this.ws.addEventListener('open', () => resolve(this.sessionId));
+        this.ws.addEventListener('close', () => reject(new Error('Socket closed before session established')));
+        return;
+      }
+
       this.ws = new WebSocket(WS_URL);
 
       this.ws.onopen = () => {
-        this.ws.send(JSON.stringify({ type: 'start', prompt: initialPrompt }));
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type: 'start', prompt: initialPrompt }));
+        }
       };
 
       this.ws.onmessage = (event) => {

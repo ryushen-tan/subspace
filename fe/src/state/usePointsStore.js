@@ -1,23 +1,38 @@
 import { create } from 'zustand';
 
 export const usePointsStore = create((set) => ({
-  points: [
-    // Cube vertices - 8 corners of a cube
-    { id: '1', position: [-0.5, -0.5, -0.5], color: '#ff6b6b' },
-    { id: '2', position: [0.5, -0.5, -0.5], color: '#4ecdc4' },
-    { id: '3', position: [0.5, 0.5, -0.5], color: '#45b7d1' },
-    { id: '4', position: [-0.5, 0.5, -0.5], color: '#f9ca24' },
-    { id: '5', position: [-0.5, -0.5, 0.5], color: '#6c5ce7' },
-    { id: '6', position: [0.5, -0.5, 0.5], color: '#a29bfe' },
-    { id: '7', position: [0.5, 0.5, 0.5], color: '#fd79a8' },
-    { id: '8', position: [-0.5, 0.5, 0.5], color: '#00b894' },
-  ],
+  points: [],
   isDragging: false,
   selectedPointIds: [],
 
-  addPoint: (point) =>
+  setPointsForObject: (objectId, points) =>
+    set((state) => {
+      const existing = state.points.filter((p) => p.objectId === objectId);
+      const normalized = points.map((p) => ({
+        ...p,
+        id: `${objectId}:${p.id}`,
+        objectId,
+      }));
+
+      const sameLength = existing.length === normalized.length;
+      const sameAll = sameLength && existing.every((p, idx) => {
+        const n = normalized[idx];
+        return p.id === n.id &&
+          p.position[0] === n.position[0] &&
+          p.position[1] === n.position[1] &&
+          p.position[2] === n.position[2] &&
+          p.color === n.color;
+      });
+
+      if (sameAll) return state;
+
+      const filtered = state.points.filter((p) => p.objectId !== objectId);
+      return { points: [...filtered, ...normalized] };
+    }),
+
+  addPoint: (point, objectId = 'default') =>
     set((state) => ({
-      points: [...state.points, point],
+      points: [...state.points, { ...point, objectId, id: `${objectId}:${point.id}` }],
     })),
 
   removePoint: (id) =>
@@ -40,7 +55,16 @@ export const usePointsStore = create((set) => ({
       ),
     })),
 
-  setPoints: (points) => set({ points }),
+  clearPointsForObject: (objectId) =>
+    set((state) => ({
+      points: state.points.filter((p) => p.objectId !== objectId),
+      selectedPointIds: state.selectedPointIds.filter((selectedId) => !selectedId.startsWith(`${objectId}:`)),
+    })),
+  setPoints: (points, objectId = 'default') =>
+    set((state) => ({
+      points: points.map((p) => ({ ...p, objectId, id: `${objectId}:${p.id}` })),
+      selectedPointIds: [],
+    })),
   
   setDragging: (isDragging) => set({ isDragging }),
 
@@ -69,4 +93,8 @@ export const usePointsStore = create((set) => ({
     }),
 
   clearSelection: () => set({ selectedPointIds: [] }),
+  clearSelectionForObject: (objectId) =>
+    set((state) => ({
+      selectedPointIds: state.selectedPointIds.filter((selectedId) => !selectedId.startsWith(`${objectId}:`)),
+    })),
 }));
