@@ -134,11 +134,11 @@ const LeftControlPanel = ({ onPhotoClick }) => {
     <Motion.div
       initial={{ height: 48, width: 48 }}
       animate={{ 
-        height: isOpen ? 720 : 48,
+        height: isOpen ? "auto" : 48,
         width: isOpen ? 320 : 48
       }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={`absolute top-4 left-4 bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl ${isOpen ? '' : 'items-center justify-center'}`}
+      className={`absolute top-4 left-4 bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl ${isOpen ? 'min-h-[220px] max-h-[85vh]' : 'items-center justify-center'}`}
     >
       {isOpen ? (
         <>
