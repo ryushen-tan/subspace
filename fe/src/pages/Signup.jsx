@@ -19,7 +19,7 @@ const Signup = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/edit');
+      navigate('/create-project');
     }
   }, [isAuthenticated, navigate]);
 
@@ -42,7 +42,7 @@ const Signup = () => {
     const result = await signup(email, password, passwordConfirm, name);
     
     if (result.success) {
-      navigate('/edit');
+      navigate('/create-project');
     } else {
       setError(result.error || 'Signup failed');
     }

@@ -17,7 +17,7 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/edit');
+      navigate('/create-project');
     }
   }, [isAuthenticated, navigate]);
 
@@ -29,7 +29,7 @@ const Login = () => {
     const result = await login(email, password);
     
     if (result.success) {
-      navigate('/edit');
+      navigate('/create-project');
     } else {
       setError(result.error || 'Login failed');
     }
