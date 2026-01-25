@@ -47,7 +47,7 @@ const Landing = () => {
                         transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
                         className="flex items-center gap-6"
                     >
-                         <a href="#" className="hidden md:block text-sm font-medium hover:text-gray-300 transition-colors">Sign In</a>
+                         <Link to="/login" className="hidden md:block text-sm font-medium hover:text-gray-300 transition-colors">Sign In</Link>
                          <Link 
                             to="/edit"
                             className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-200 transition-colors duration-300 flex items-center gap-2"
