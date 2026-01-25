@@ -33,7 +33,7 @@ export function Scene({ isSidebarOpen }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
-  const mesh = useAgentStore((state) => state.mesh);
+  const objects = useAgentStore((state) => state.objects);
   
   return (
     <div className="absolute top-0 left-64 right-0 bottom-0">
@@ -97,8 +97,12 @@ export function Scene({ isSidebarOpen }) {
       <PointCloud />
 
       {/* Mesh Surface & Edges */}
-      <MeshSurface mesh={mesh} />
-      <MeshEdges mesh={mesh} />
+      {objects.map((obj) => (
+        <group key={obj.id} visible={obj.visible}>
+          <MeshSurface mesh={obj.mesh} />
+          <MeshEdges mesh={obj.mesh} />
+        </group>
+      ))}
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />

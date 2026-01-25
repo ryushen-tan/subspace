@@ -4,6 +4,16 @@ import { usePointsStore } from './usePointsStore';
 
 const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe', '#fd79a8', '#00b894'];
 
+const meshesAreEqual = (a, b) => {
+  if (!a || !b) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch (err) {
+    console.warn('Mesh comparison failed', err);
+    return false;
+  }
+};
+
 export const useAgentStore = create((set, get) => ({
   sessionId: null,
   isConnected: false,
@@ -12,7 +22,54 @@ export const useAgentStore = create((set, get) => ({
   messages: [],
   toolCalls: [],
   mesh: null,
+  objects: [],
+  activeObjectId: null,
   finalized: false,
+
+  addMeshObject: (mesh, name) => {
+    if (!mesh?.vertices?.length) return null;
+
+    const state = get();
+    const existing = state.objects.find((obj) => meshesAreEqual(obj.mesh, mesh));
+    if (existing) return existing.id;
+
+    let createdId = null;
+    set((s) => {
+      const objectId = `obj-${Date.now()}-${s.objects.length + 1}`;
+      createdId = objectId;
+      const label = name || `Object ${s.objects.length + 1}`;
+      const newObject = { id: objectId, name: label, mesh, visible: true };
+
+      return {
+        objects: [...s.objects, newObject],
+        mesh,
+        activeObjectId: objectId,
+      };
+    });
+
+    if (createdId) {
+      const points = mesh.vertices.map((v, i) => ({
+        id: v.id,
+        position: v.p,
+        color: COLORS[i % COLORS.length],
+      }));
+      usePointsStore.getState().setPointsForObject(createdId, points);
+    }
+
+    return createdId;
+  },
+
+  toggleObjectVisibility: (objectId) =>
+    set((state) => {
+      const updated = state.objects.map((obj) =>
+        obj.id === objectId ? { ...obj, visible: !obj.visible } : obj
+      );
+      const toggled = updated.find((obj) => obj.id === objectId);
+      if (toggled && !toggled.visible) {
+        usePointsStore.getState().clearSelectionForObject(objectId);
+      }
+      return { objects: updated };
+    }),
 
   connect: async (initialPrompt = '') => {
     set({ isLoading: true });
@@ -29,18 +86,13 @@ export const useAgentStore = create((set, get) => ({
       const isDone = state.finalized || state.task_complete;
       set({ 
         todo: state.todo || [],
-        mesh: state.mesh,
         finalized: isDone,
         isLoading: !isDone,
       });
 
       if (state.mesh?.vertices?.length > 0) {
-        const points = state.mesh.vertices.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPoints(points);
+        const label = state.iteration != null ? `Step ${state.iteration}` : undefined;
+        get().addMeshObject(state.mesh, label);
       }
     };
 
@@ -99,17 +151,9 @@ export const useAgentStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const mesh = await agentApi.uploadStepFile(file, sessionId);
-      set({ mesh, isLoading: false });
-      
-      if (mesh.vertices?.length > 0) {
-        const points = mesh.vertices.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPoints(points);
-      }
-      
+      set({ isLoading: false });
+      get().addMeshObject(mesh, file.name || 'Upload');
+
       set((s) => ({
         messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
       }));
@@ -127,17 +171,9 @@ export const useAgentStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const mesh = await agentApi.uploadStlFile(file, sessionId);
-      set({ mesh, isLoading: false });
-      
-      if (mesh.vertices?.length > 0) {
-        const points = mesh.vertices.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPoints(points);
-      }
-      
+      set({ isLoading: false });
+      get().addMeshObject(mesh, file.name || 'Upload');
+
       set((s) => ({
         messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
       }));
