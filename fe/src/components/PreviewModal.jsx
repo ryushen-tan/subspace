@@ -67,7 +67,7 @@ const PreviewModal = ({ isOpen, onClose }) => {
             {selectedBackground && mesh ? (
               <div className="w-full h-full relative">
                 <PreviewScene 
-                  backgroundUrl={`/${selectedBackground}`}
+                  backgroundUrl={selectedBackground.startsWith('glb:') ? selectedBackground : `/${selectedBackground}`}
                   onCapture={handleCapture}
                   shouldCapture={isCapturing}
                 />
@@ -90,7 +90,11 @@ const PreviewModal = ({ isOpen, onClose }) => {
           {/* Footer */}
           <div className="flex items-center justify-between p-4 border-t border-white/10">
             <div className="text-sm text-gray-400">
-              {selectedBackground ? `Selected: ${selectedBackground.split('/').pop()}` : 'No background selected'}
+              {selectedBackground 
+                ? `Selected: ${selectedBackground.startsWith('glb:') 
+                    ? selectedBackground.replace('glb:', '') 
+                    : selectedBackground.split('/').pop()}` 
+                : 'No background selected'}
             </div>
             <div className="flex gap-2">
               {selectedBackground && mesh && !capturedImage && (
