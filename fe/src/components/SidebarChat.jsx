@@ -148,7 +148,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           onClick={toggleSidebar}
           className="w-full h-full flex items-center justify-center p-2 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
-          <ChevronLeft className="w-4 h-4 rotate-90" />
+          <MessageSquare className="w-5 h-5" />
         </button>
       )}
 

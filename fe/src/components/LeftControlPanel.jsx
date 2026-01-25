@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
 
@@ -114,7 +114,7 @@ const LeftControlPanel = () => {
           onClick={togglePanel}
           className="w-full h-full flex items-center justify-center p-2 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
-          <ChevronRight className="w-4 h-4 rotate-90" />
+          <Layers className="w-5 h-5" />
         </button>
       )}
 
