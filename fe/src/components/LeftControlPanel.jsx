@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
