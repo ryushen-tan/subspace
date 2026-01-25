@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
 import TransformControls from './TransformControls';
@@ -18,6 +18,7 @@ const LeftControlPanel = () => {
   const [draftName, setDraftName] = useState('');
   const [hexValues, setHexValues] = useState({});
   const [colorPickerOpen, setColorPickerOpen] = useState(null); // Track which object's color picker is open
+  const [searchQuery, setSearchQuery] = useState('');
   const colorPickerRef = useRef(null);
 
   useEffect(() => {
@@ -107,6 +108,15 @@ const LeftControlPanel = () => {
 
   const togglePanel = () => setIsOpen(!isOpen);
 
+  // Filter objects based on search query
+  const filteredObjects = useMemo(() => {
+    if (!searchQuery.trim()) return objects;
+    const query = searchQuery.toLowerCase().trim();
+    return objects.filter(obj => 
+      obj.name.toLowerCase().includes(query)
+    );
+  }, [objects, searchQuery]);
+
   return (
     <Motion.div
       initial={{ height: 48, width: 48 }}
@@ -146,13 +156,35 @@ const LeftControlPanel = () => {
         <>
           {/* Content Section */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Search Bar */}
+            <div className="px-4 pt-4 pb-2 border-b border-white/5">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search objects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-neutral-900/50 border border-white/10 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-neutral-900 transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-6">
 
         {/* Objects Section */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
             <Layers className="w-4 h-4" />
-            <span>Objects</span>
+            <span>Objects {searchQuery && `(${filteredObjects.length}/${objects.length})`}</span>
           </div>
           <div className="space-y-2">
             {objects.length === 0 && (
@@ -160,7 +192,12 @@ const LeftControlPanel = () => {
                 No objects yet. Upload a STEP/STL file or let the agent generate geometry.
               </div>
             )}
-            {objects.map((object) => {
+            {searchQuery && filteredObjects.length === 0 && objects.length > 0 && (
+              <div className="p-3 text-sm text-gray-500 bg-neutral-900/50 border border-white/5 rounded-lg">
+                No objects match "{searchQuery}"
+              </div>
+            )}
+            {filteredObjects.map((object) => {
               const color = hexValues[object.id] || object.color || '#4f46e5';
               const { h, l } = hexToHsl(color);
               const markerX = `${(h / 360) * 100}%`;
