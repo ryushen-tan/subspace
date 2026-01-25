@@ -133,7 +133,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           {isOpen && <ControlsOverlay />}
           <button
             onClick={toggleSidebar}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0"
+            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0 cursor-pointer"
           >
             {isOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -294,7 +294,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200"
+                className="absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200 cursor-pointer disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
               </button>

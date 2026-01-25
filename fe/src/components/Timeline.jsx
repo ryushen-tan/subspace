@@ -101,7 +101,7 @@ const Timeline = () => {
             <button
               onClick={handlePrevStep}
               disabled={currentStepIndex <= 0}
-              className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+              className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer text-gray-400 hover:text-white transition-colors"
             >
               <SkipBack className="w-3 h-3" />
             </button>
@@ -109,7 +109,7 @@ const Timeline = () => {
             <button
               onClick={handleNextStep}
               disabled={currentStepIndex >= timelineSteps.length - 1}
-              className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+              className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer text-gray-400 hover:text-white transition-colors"
             >
               <SkipForward className="w-3 h-3" />
             </button>
@@ -154,7 +154,7 @@ const Timeline = () => {
                         e.stopPropagation();
                         handleStepClick(index);
                       }}
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/40 rounded-full hover:scale-150 transition-transform group/marker"
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/40 rounded-full hover:scale-150 transition-transform group/marker cursor-pointer"
                       style={{ left: `${position}%` }}
                     >
                       {/* Tooltip on marker hover */}
@@ -176,7 +176,7 @@ const Timeline = () => {
           {/* Edit Button */}
           <button
             onClick={handleEditPrompt}
-            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-indigo-600/20 text-gray-400 hover:text-indigo-400 transition-colors text-[10px] flex-shrink-0"
+            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-indigo-600/20 text-gray-400 hover:text-indigo-400 transition-colors text-[10px] flex-shrink-0 cursor-pointer"
           >
             <Edit2 className="w-3 h-3" />
           </button>
@@ -189,7 +189,7 @@ const Timeline = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 cursor-pointer"
           onClick={() => setShowEditPrompt(false)}
         >
           <Motion.div
@@ -215,13 +215,13 @@ const Timeline = () => {
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setShowEditPrompt(false)}
-                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitEdit}
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors cursor-pointer"
               >
                 Send
               </button>

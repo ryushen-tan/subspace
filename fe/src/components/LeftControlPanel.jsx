@@ -100,7 +100,7 @@ const LeftControlPanel = () => {
         ) : null}
         <button
           onClick={togglePanel}
-          className={`p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0 ${isOpen ? '' : 'w-full'}`}
+          className={`p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0 cursor-pointer ${isOpen ? '' : 'w-full'}`}
         >
           {isOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
@@ -236,7 +236,7 @@ const LeftControlPanel = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <button
-                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
+                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors cursor-pointer"
                         onClick={() => {
                           setEditingId(object.id);
                           setDraftName(object.name);
@@ -246,14 +246,14 @@ const LeftControlPanel = () => {
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
-                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors"
+                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors cursor-pointer"
                         onClick={() => deleteObject(object.id)}
                         aria-label="Delete object"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                       <button
-                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors"
+                        className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors cursor-pointer"
                         onClick={() => toggleObjectVisibility(object.id)}
                         aria-label={object.visible ? 'Hide object' : 'Show object'}
                       >

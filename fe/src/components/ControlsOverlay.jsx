@@ -18,7 +18,7 @@ export default function ControlsOverlay() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-8 h-8 rounded-lg border border-white/15 bg-white/5 text-white flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/10 relative z-10 font-semibold"
+        className="w-8 h-8 rounded-lg border border-white/15 bg-white/5 text-white flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/10 relative z-10 font-semibold cursor-pointer"
         aria-label={isOpen ? 'Close controls helper' : 'Open controls helper'}
       >
         {isOpen ? <X size={16} /> : <span className="text-sm">?</span>}

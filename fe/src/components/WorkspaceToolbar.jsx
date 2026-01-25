@@ -16,21 +16,28 @@ const WorkspaceToolbar = ({ onPreviewClick }) => {
     <div className="bg-neutral-950/95 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2 z-10 flex items-center gap-2 shadow-2xl">
       {tools.map((tool) => {
         const Icon = tool.icon;
+        const isPreview = tool.id === 'preview';
         return (
           <button
             key={tool.id}
             onClick={tool.onClick || undefined}
-            className={`p-2 rounded-lg transition-colors group relative ${
+            className={`${isPreview ? 'px-4 py-2' : 'p-2'} rounded-lg transition-colors group relative cursor-pointer ${
               tool.highlight
                 ? 'bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 hover:text-indigo-300'
                 : 'hover:bg-white/10 text-gray-400 hover:text-gray-200'
             }`}
             title={tool.label}
           >
-            <Icon className="w-5 h-5" />
-            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 text-xs text-gray-300 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">
-              {tool.label}
-            </span>
+            {isPreview ? (
+              <span className="text-sm font-medium hover:cursor-pointer">Preview</span>
+            ) : (
+              <Icon className="w-5 h-5" />
+            )}
+            {!isPreview && (
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 text-xs text-gray-300 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">
+                {tool.label}
+              </span>
+            )}
           </button>
         );
       })}
