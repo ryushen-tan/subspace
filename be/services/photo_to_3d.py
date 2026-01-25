@@ -129,7 +129,19 @@ Respond ONLY with valid JSON in this exact format:
             
             response_text = response_data["choices"][0]["message"]["content"]
             
-            # Try to parse JSON
+            # Log the response for debugging
+            print(f"OpenRouter response: {response_text}")
+            
+            # Try to parse JSON - handle markdown code blocks if present
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]  # Remove ```json
+            if response_text.startswith("```"):
+                response_text = response_text[3:]  # Remove ```
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]  # Remove trailing ```
+            response_text = response_text.strip()
+            
             analysis = json.loads(response_text)
             
             # Store paper size info
