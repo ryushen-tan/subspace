@@ -333,6 +333,130 @@ export const useAgentStore = create((set, get) => ({
       };
     }),
 
+  rotateObject: (objectId, rotation) =>
+    set((state) => {
+      if (!rotation || rotation.length !== 3) return state;
+      const [rx, ry, rz] = rotation.map((r) => (r * Math.PI) / 180); // Convert degrees to radians
+
+      // Get center of object
+      const obj = state.objects.find((o) => o.id === objectId);
+      if (!obj?.mesh?.vertices?.length) return state;
+
+      const verts = obj.mesh.vertices;
+      const centerX = verts.reduce((sum, v) => sum + v.p[0], 0) / verts.length;
+      const centerY = verts.reduce((sum, v) => sum + v.p[1], 0) / verts.length;
+      const centerZ = verts.reduce((sum, v) => sum + v.p[2], 0) / verts.length;
+
+      // Helper to rotate point around center
+      const rotatePoint = (p, cx, cy, cz, rotX, rotY, rotZ) => {
+        let [x, y, z] = [p[0] - cx, p[1] - cy, p[2] - cz];
+
+        // Rotation around X axis
+        let y1 = y * Math.cos(rotX) - z * Math.sin(rotX);
+        let z1 = y * Math.sin(rotX) + z * Math.cos(rotX);
+        y = y1;
+        z = z1;
+
+        // Rotation around Y axis
+        let x1 = x * Math.cos(rotY) + z * Math.sin(rotY);
+        z1 = -x * Math.sin(rotY) + z * Math.cos(rotY);
+        x = x1;
+        z = z1;
+
+        // Rotation around Z axis
+        x1 = x * Math.cos(rotZ) - y * Math.sin(rotZ);
+        y1 = x * Math.sin(rotZ) + y * Math.cos(rotZ);
+        x = x1;
+        y = y1;
+
+        return [x + cx, y + cy, z + cz];
+      };
+
+      const updatedObjects = state.objects.map((o) => {
+        if (o.id !== objectId) return o;
+        const nextVerts = (o.mesh?.vertices || []).map((v, i) => ({
+          ...v,
+          p: rotatePoint(v.p, centerX, centerY, centerZ, rx, ry, rz),
+          color: v.color || COLORS[i % COLORS.length],
+        }));
+        const nextMesh = { ...o.mesh, vertices: nextVerts };
+        const points = nextVerts.map((v, i) => ({
+          id: v.id,
+          position: v.p,
+          color: COLORS[i % COLORS.length],
+        }));
+        usePointsStore.getState().setPointsForObject(objectId, points);
+        return { ...o, mesh: nextMesh };
+      });
+
+      const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
+      return {
+        objects: updatedObjects,
+        mesh: activeUpdated?.mesh || state.mesh,
+      };
+    }),
+
+  scaleObject: (objectId, scaleFactor) =>
+    set((state) => {
+      if (!scaleFactor || scaleFactor <= 0) return state;
+
+      // Get center of object
+      const obj = state.objects.find((o) => o.id === objectId);
+      if (!obj?.mesh?.vertices?.length) return state;
+
+      const verts = obj.mesh.vertices;
+      const centerX = verts.reduce((sum, v) => sum + v.p[0], 0) / verts.length;
+      const centerY = verts.reduce((sum, v) => sum + v.p[1], 0) / verts.length;
+      const centerZ = verts.reduce((sum, v) => sum + v.p[2], 0) / verts.length;
+
+      const updatedObjects = state.objects.map((o) => {
+        if (o.id !== objectId) return o;
+        const nextVerts = (o.mesh?.vertices || []).map((v, i) => ({
+          ...v,
+          p: [
+            centerX + (v.p[0] - centerX) * scaleFactor,
+            centerY + (v.p[1] - centerY) * scaleFactor,
+            centerZ + (v.p[2] - centerZ) * scaleFactor,
+          ],
+          color: v.color || COLORS[i % COLORS.length],
+        }));
+        const nextMesh = { ...o.mesh, vertices: nextVerts };
+        const points = nextVerts.map((v, i) => ({
+          id: v.id,
+          position: v.p,
+          color: COLORS[i % COLORS.length],
+        }));
+        usePointsStore.getState().setPointsForObject(objectId, points);
+        return { ...o, mesh: nextMesh };
+      });
+
+      const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
+      return {
+        objects: updatedObjects,
+        mesh: activeUpdated?.mesh || state.mesh,
+      };
+    }),
+
+  setObjectPosition: (objectId, position) => {
+    if (!position || position.length !== 3) return;
+
+    const state = get();
+    const obj = state.objects.find((o) => o.id === objectId);
+    if (!obj?.mesh?.vertices?.length) return;
+
+    const verts = obj.mesh.vertices;
+    const centerX = verts.reduce((sum, v) => sum + v.p[0], 0) / verts.length;
+    const centerY = verts.reduce((sum, v) => sum + v.p[1], 0) / verts.length;
+    const centerZ = verts.reduce((sum, v) => sum + v.p[2], 0) / verts.length;
+
+    const [newX, newY, newZ] = position;
+    const dx = newX - centerX;
+    const dy = newY - centerY;
+    const dz = newZ - centerZ;
+
+    get().translateObject(objectId, [dx, dy, dz]);
+  },
+
   setActiveObject: (objectId) => {
     const target = get().objects.find((obj) => obj.id === objectId);
     if (!target) return;

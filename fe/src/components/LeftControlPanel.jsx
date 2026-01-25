@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
+import TransformControls from './TransformControls';
 
 const LeftControlPanel = () => {
   const Motion = motion;
@@ -274,6 +275,13 @@ const LeftControlPanel = () => {
                           placeholder="#4F46E5"
                         />
                       </div>
+                    </div>
+                  )}
+
+                  {/* Transform Controls - show when object is selected */}
+                  {object.id === activeObjectId && (
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                      <TransformControls objectId={object.id} />
                     </div>
                   )}
                 </div>
