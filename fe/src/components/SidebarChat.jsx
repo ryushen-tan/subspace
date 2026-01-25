@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check, Command } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check, Command, Mic, MicOff } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import ControlsOverlay from './ControlsOverlay';
 import MarkdownContent from './MarkdownContent';
+import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 
 const COMMANDS = [
   { name: '/inspect-mesh', description: 'View mesh stats and structure info' },
@@ -19,7 +20,10 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
   const [selectedMentionIdx, setSelectedMentionIdx] = useState(0);
   const [mentionQuery, setMentionQuery] = useState('');
   const [showMentions, setShowMentions] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const messagesEndRef = useRef(null);
+  
+  const { isRecording, startRecording, stopRecording, cancelRecording, getAudioArrayBuffer } = useVoiceRecorder();
   
   const {
     isConnected,
@@ -128,6 +132,97 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       sendMessage(input);
       setInput('');
     }
+  };
+
+  const transcribeAudio = async (audioBlob) => {
+    if (!audioBlob) return null;
+    
+    setIsTranscribing(true);
+    
+    try {
+      console.log('[Transcription] Audio blob info:', {
+        type: audioBlob.type,
+        size: audioBlob.size,
+      });
+      
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'recording.webm');
+      formData.append('model_id', 'scribe_v2');
+      
+      console.log('[Transcription] Sending request to ElevenLabs...');
+      
+      const response = await fetch(`https://api.elevenlabs.io/v1/speech-to-text`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': import.meta.env.VITE_ELEVENLABS_API_KEY,
+        },
+        body: formData,
+      });
+      
+      console.log('[Transcription] Response status:', response.status);
+      console.log('[Transcription] Response ok:', response.ok);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Transcription] Error response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { detail: { message: errorText } };
+        }
+        console.error('[Transcription] Parsed error data:', errorData);
+        throw new Error(errorData.detail?.message || errorData.message || errorText || 'Transcription failed');
+      }
+      
+      const data = await response.json();
+      console.log('[Transcription] Success response:', data);
+      return data.text || '';
+    } catch (error) {
+      console.error('[Transcription] Full error:', error);
+      throw error;
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  const handleVoiceStart = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      await startRecording();
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+    }
+  };
+
+  const handleVoiceEnd = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      const audioBlob = await stopRecording();
+      if (audioBlob) {
+        const transcription = await transcribeAudio(audioBlob);
+        if (transcription) {
+          setInput(prev => prev + transcription);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling voice input:', error);
+      cancelRecording();
+    }
+  };
+
+  const handleVoiceCancel = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    cancelRecording();
   };
 
   const handleFileUpload = async (e) => {
@@ -386,13 +481,41 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Type / for commands or @ for objects..."
-                disabled={isLoading}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50"
+                disabled={isLoading || isRecording || isTranscribing}
+                className={`w-full bg-neutral-900 border border-white/10 rounded-xl pl-24 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50 ${isRecording ? 'border-red-500/50' : ''}`}
               />
+              {/* Recording indicator */}
+              {isRecording && (
+                <div className="absolute left-16 flex items-center gap-1.5 px-2 py-1">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-xs text-red-400 font-medium">Recording...</span>
+                </div>
+              )}
+              {/* Mic button */}
+              <button
+                type="button"
+                onMouseDown={handleVoiceStart}
+                onMouseUp={handleVoiceEnd}
+                onMouseLeave={handleVoiceCancel}
+                onTouchStart={handleVoiceStart}
+                onTouchEnd={handleVoiceEnd}
+                disabled={isLoading || isTranscribing}
+                className={`absolute left-2 p-1.5 rounded-lg transition-colors transform duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isRecording 
+                    ? 'bg-red-600 text-white' 
+                    : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-white'
+                }`}
+                title={isRecording ? 'Release to stop recording' : 'Hold to record'}
+              >
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+              {/* Send button - show when not recording or transcribing */}
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200 cursor-pointer disabled:cursor-not-allowed"
+                disabled={!input.trim() || isLoading || isRecording}
+                className={`absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200 cursor-pointer disabled:cursor-not-allowed ${
+                  isRecording ? 'opacity-0' : ''
+                }`}
               >
                 <Send className="w-4 h-4" />
               </button>
