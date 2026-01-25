@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown } from 'lucide-react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown, User } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
+import { useAuthStore } from '../state/useAuthStore';
 import { motion } from 'framer-motion';
 import TransformControls from './TransformControls';
 
@@ -17,6 +18,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
   const projectDescription = useAgentStore((state) => state.projectDescription);
   const setProjectName = useAgentStore((state) => state.setProjectName);
   const setProjectDescription = useAgentStore((state) => state.setProjectDescription);
+  const authUser = useAuthStore((state) => state.user);
 
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
@@ -392,6 +394,23 @@ const LeftControlPanel = ({ onPhotoClick }) => {
             })}
           </div>
         </div>
+            </div>
+            
+            {/* User Section - Bottom Left */}
+            <div className="px-4 py-3 border-t border-white/5 bg-neutral-900/30">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-indigo-600/20 flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 text-indigo-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-200 truncate">
+                    {authUser?.name || authUser?.email || 'Guest'}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {authUser ? 'Active' : 'Not signed in'}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </>

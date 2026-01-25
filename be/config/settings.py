@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-3-flash-preview"
     openrouter_max_tokens: int = 24000
     max_agent_iterations: int = 20
+    
+    # PocketBase configuration
+    pocketbase_url: str = "http://127.0.0.1:8090"  # PocketBase server URL
 
 
 @lru_cache
