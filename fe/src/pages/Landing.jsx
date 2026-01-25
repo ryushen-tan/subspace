@@ -65,7 +65,7 @@ const Landing = () => {
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                         className="text-6xl md:text-8xl lg:text-9xl font-serif tracking-tighter leading-[0.9] mb-8 mix-blend-exclusion"
                     >
-                        Frontier <br /> 3D Intelligence.
+                        Subspace <br /> 3D Intelligence.
                     </Motion.h1>
                     
                     <Motion.p 
