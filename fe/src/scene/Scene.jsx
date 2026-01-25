@@ -9,8 +9,8 @@ import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
 import WorkspaceBottomBar from '../components/WorkspaceBottomBar';
 
-function MeshSurface({ mesh }) {
-  const geometry = useMemo(() => buildMeshGeometry(mesh), [mesh]);
+function MeshSurface({ mesh, pointOverrides }) {
+  const geometry = useMemo(() => buildMeshGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
     <mesh geometry={geometry}>
@@ -19,8 +19,8 @@ function MeshSurface({ mesh }) {
   );
 }
 
-function MeshEdges({ mesh }) {
-  const geometry = useMemo(() => buildEdgesGeometry(mesh), [mesh]);
+function MeshEdges({ mesh, pointOverrides }) {
+  const geometry = useMemo(() => buildEdgesGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
     <lineSegments geometry={geometry}>
@@ -33,7 +33,14 @@ export function Scene({ isSidebarOpen }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
+  const points = usePointsStore((state) => state.points);
   const mesh = useAgentStore((state) => state.mesh);
+  
+  const pointOverrides = useMemo(() => {
+    const map = new Map();
+    points.forEach(p => map.set(p.id, p.position));
+    return map;
+  }, [points]);
   
   return (
     <div className="absolute top-0 left-64 right-0 bottom-0">
@@ -97,8 +104,8 @@ export function Scene({ isSidebarOpen }) {
       <PointCloud />
 
       {/* Mesh Surface & Edges */}
-      <MeshSurface mesh={mesh} />
-      <MeshEdges mesh={mesh} />
+      <MeshSurface mesh={mesh} pointOverrides={pointOverrides} />
+      <MeshEdges mesh={mesh} pointOverrides={pointOverrides} />
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />

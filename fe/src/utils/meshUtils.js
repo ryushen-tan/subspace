@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export function buildMeshGeometry(mesh) {
+export function buildMeshGeometry(mesh, pointOverrides = null) {
   if (!mesh?.vertices?.length) return null;
 
   const idToIndex = new Map();
@@ -9,9 +9,10 @@ export function buildMeshGeometry(mesh) {
   for (let i = 0; i < mesh.vertices.length; i++) {
     const v = mesh.vertices[i];
     idToIndex.set(v.id, i);
-    positions[i * 3] = v.p[0];
-    positions[i * 3 + 1] = v.p[1];
-    positions[i * 3 + 2] = v.p[2] ?? 0;
+    const pos = pointOverrides?.get(v.id) ?? v.p;
+    positions[i * 3] = pos[0];
+    positions[i * 3 + 1] = pos[1];
+    positions[i * 3 + 2] = pos[2] ?? 0;
   }
 
   let faces = mesh.faces || [];
@@ -47,10 +48,10 @@ export function buildMeshGeometry(mesh) {
   return geometry;
 }
 
-export function buildEdgesGeometry(mesh) {
+export function buildEdgesGeometry(mesh, pointOverrides = null) {
   if (!mesh?.vertices?.length || !mesh.edges?.length) return null;
 
-  const idToPos = new Map(mesh.vertices.map((v) => [v.id, v.p]));
+  const idToPos = new Map(mesh.vertices.map((v) => [v.id, pointOverrides?.get(v.id) ?? v.p]));
   const positions = [];
 
   for (const e of mesh.edges) {
