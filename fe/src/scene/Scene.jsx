@@ -89,6 +89,15 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     return map;
   }, [points]);
 
+  const startManualIdle = () => {
+    // Manually start auto-rotate and stop the idle timer
+    setIsIdle(true);
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+  };
+
   // Idle detection - 1 minute (60000ms)
   const resetIdleTimer = () => {
     setIsIdle(false);
@@ -101,11 +110,14 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   };
 
   useEffect(() => {
-    // Track user interactions
+    // Track user interactions; ignore the manual hotkey so it can trigger auto-rotate
     const events = ['mousedown', 'mousemove', 'keydown', 'wheel', 'touchstart'];
-    
+    const activityHandler = (event) => {
+      if (event.type === 'keydown' && event.key?.toLowerCase() === 'r') return;
+      resetIdleTimer();
+    };
     events.forEach(event => {
-      window.addEventListener(event, resetIdleTimer);
+      window.addEventListener(event, activityHandler);
     });
 
     // Start initial timer
@@ -113,12 +125,28 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
 
     return () => {
       events.forEach(event => {
-        window.removeEventListener(event, resetIdleTimer);
+        window.removeEventListener(event, activityHandler);
       });
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    // Keyboard shortcut: press "R" to start auto-rotate
+    const handler = (event) => {
+      if (event.key?.toLowerCase() !== 'r') return;
+      // Avoid triggering while typing in inputs/textareas/contenteditable
+      const target = event.target;
+      const tag = target?.tagName;
+      const isTextInput = tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable;
+      if (isTextInput) return;
+      event.preventDefault();
+      startManualIdle();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
   
   return (

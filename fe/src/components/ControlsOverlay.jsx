@@ -7,6 +7,7 @@ const shortcuts = [
   { label: 'Zoom', action: 'Scroll wheel / Pinch' },
   { label: 'Select Point', action: 'Left click on sphere' },
   { label: 'Axis Move', action: 'Gizmo handles (X/Y/Z)' },
+  { label: 'Start Auto-Rotate', action: 'Press R' },
 ];
 
 export default function ControlsOverlay() {
