@@ -1,0 +1,235 @@
+import React, { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Play, Pause, SkipBack, SkipForward, Edit2 } from 'lucide-react';
+import { useAgentStore } from '../state/useAgentStore';
+
+const Timeline = () => {
+  const { timelineSteps, currentStepIndex, scrubToStep, sendMessage } = useAgentStore();
+  const [isDragging, setIsDragging] = useState(false);
+  const [showEditPrompt, setShowEditPrompt] = useState(false);
+  const [editInput, setEditInput] = useState('');
+  const timelineRef = useRef(null);
+
+  const handleScrub = (clientX) => {
+    if (!timelineRef.current) return;
+    const rect = timelineRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const percentage = x / rect.width;
+    const stepIndex = Math.round(percentage * (timelineSteps.length - 1));
+    scrubToStep(stepIndex);
+  };
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    handleScrub(e.clientX);
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging) {
+      handleScrub(e.clientX);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleStepClick = (index) => {
+    scrubToStep(index);
+  };
+
+  const handlePrevStep = () => {
+    if (currentStepIndex > 0) {
+      scrubToStep(currentStepIndex - 1);
+    }
+  };
+
+  const handleNextStep = () => {
+    if (currentStepIndex < timelineSteps.length - 1) {
+      scrubToStep(currentStepIndex + 1);
+    }
+  };
+
+  const handleEditPrompt = () => {
+    const currentStep = timelineSteps[currentStepIndex];
+    const lastMessage = currentStep?.messages?.[currentStep.messages.length - 1];
+    if (lastMessage?.role === 'user') {
+      setEditInput(lastMessage.content);
+    } else {
+      setEditInput('');
+    }
+    setShowEditPrompt(true);
+  };
+
+  const handleSubmitEdit = () => {
+    if (editInput.trim()) {
+      sendMessage(editInput);
+      setShowEditPrompt(false);
+      setEditInput('');
+    }
+  };
+
+  React.useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging]);
+
+  // Early return after all hooks are called
+  if (timelineSteps.length === 0) return null;
+
+  const progress = timelineSteps.length > 1 
+    ? (currentStepIndex / (timelineSteps.length - 1)) * 100 
+    : 0;
+
+  return (
+    <>
+      <motion.div
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        className="absolute bottom-4 left-4 right-[400px] bg-neutral-950/80 backdrop-blur-sm border border-white/5 rounded-lg shadow-xl z-20"
+      >
+        <div className="px-3 py-2 flex items-center gap-3">
+          {/* Compact Controls */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={handlePrevStep}
+              disabled={currentStepIndex <= 0}
+              className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+            >
+              <SkipBack className="w-3 h-3" />
+            </button>
+            
+            <button
+              onClick={handleNextStep}
+              disabled={currentStepIndex >= timelineSteps.length - 1}
+              className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+            >
+              <SkipForward className="w-3 h-3" />
+            </button>
+
+            <span className="text-[10px] text-gray-500 ml-1 min-w-[60px]">
+              {currentStepIndex + 1} / {timelineSteps.length}
+            </span>
+          </div>
+
+          {/* Slim Progress Bar */}
+          <div className="flex-1 relative group">
+            <div
+              ref={timelineRef}
+              onMouseDown={handleMouseDown}
+              className="relative h-1 bg-white/10 rounded-full cursor-pointer overflow-visible hover:h-1.5 transition-all"
+            >
+              {/* Progress Fill */}
+              <motion.div
+                className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full"
+                style={{ width: `${progress}%` }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+
+              {/* Scrubber Handle */}
+              <motion.div
+                className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ left: `${progress}%`, marginLeft: '-5px' }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+
+              {/* Step Markers (subtle) */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                {timelineSteps.map((step, index) => {
+                  const position = timelineSteps.length > 1 
+                    ? (index / (timelineSteps.length - 1)) * 100 
+                    : 50;
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStepClick(index);
+                      }}
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/40 rounded-full hover:scale-150 transition-transform group/marker"
+                      style={{ left: `${position}%` }}
+                    >
+                      {/* Tooltip on marker hover */}
+                      <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/marker:opacity-100 transition-opacity bg-neutral-900 border border-white/20 rounded px-2 py-0.5 text-[10px] text-white whitespace-nowrap pointer-events-none">
+                        {step.name || `Step ${index + 1}`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Current Step Name */}
+          <div className="text-[10px] text-gray-400 max-w-[120px] truncate flex-shrink-0">
+            {timelineSteps[currentStepIndex]?.name || ''}
+          </div>
+
+          {/* Edit Button */}
+          <button
+            onClick={handleEditPrompt}
+            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-indigo-600/20 text-gray-400 hover:text-indigo-400 transition-colors text-[10px] flex-shrink-0"
+          >
+            <Edit2 className="w-3 h-3" />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Edit Prompt Modal */}
+      {showEditPrompt && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowEditPrompt(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-neutral-900 border border-white/10 rounded-xl p-6 w-[600px] shadow-2xl"
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Edit Prompt</h3>
+            <textarea
+              value={editInput}
+              onChange={(e) => setEditInput(e.target.value)}
+              placeholder="Enter your modified prompt..."
+              className="w-full h-32 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  handleSubmitEdit();
+                }
+              }}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setShowEditPrompt(false)}
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitEdit}
+                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+              >
+                Send
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </>
+  );
+};
+
+export default Timeline;

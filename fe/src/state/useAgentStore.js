@@ -128,6 +128,53 @@ export const useAgentStore = create((set, get) => ({
   objects: [],
   activeObjectId: null,
   finalized: false,
+  
+  // Timeline state
+  timelineSteps: [],
+  currentStepIndex: -1,
+
+  addTimelineStep: (stepData) => {
+    set((s) => {
+      // If we're not at the end, truncate future steps
+      const steps = s.currentStepIndex === s.timelineSteps.length - 1 
+        ? s.timelineSteps 
+        : s.timelineSteps.slice(0, s.currentStepIndex + 1);
+      
+      return {
+        timelineSteps: [...steps, stepData],
+        currentStepIndex: steps.length,
+      };
+    });
+  },
+  
+  scrubToStep: (stepIndex) => {
+    const state = get();
+    if (stepIndex < 0 || stepIndex >= state.timelineSteps.length) return;
+    
+    const step = state.timelineSteps[stepIndex];
+    
+    // Update visibility of all objects up to this step
+    const visibleObjectIds = new Set();
+    for (let i = 0; i <= stepIndex; i++) {
+      const s = state.timelineSteps[i];
+      if (s.objectId) visibleObjectIds.add(s.objectId);
+    }
+    
+    // Restore messages up to this point
+    const messages = state.timelineSteps.slice(0, stepIndex + 1)
+      .flatMap(s => s.messages || []);
+    
+    set({
+      currentStepIndex: stepIndex,
+      objects: state.objects.map(obj => ({
+        ...obj,
+        visible: visibleObjectIds.has(obj.id)
+      })),
+      messages,
+      activeObjectId: step.objectId || state.activeObjectId,
+      mesh: step.mesh || state.mesh,
+    });
+  },
 
   addMeshObject: (mesh, name) => {
     if (!mesh?.vertices?.length) return null;
@@ -166,11 +213,12 @@ export const useAgentStore = create((set, get) => ({
     const finalSig = meshSignature(finalMesh);
 
     let createdId = null;
+    let objectName = null;
     set((s) => {
       const objectId = `obj-${Date.now()}-${s.objects.length + 1}`;
       createdId = objectId;
-      const label = name || `Object ${s.objects.length + 1}`;
-      const newObject = { id: objectId, name: label, mesh: finalMesh, visible: true, signature: finalSig };
+      objectName = name || `Obj ${s.timelineSteps.length + 1}`;
+      const newObject = { id: objectId, name: objectName, mesh: finalMesh, visible: true, signature: finalSig };
 
       return {
         // Only the latest object stays visible to avoid duplicate geometry overlay; others remain but hidden
@@ -187,6 +235,16 @@ export const useAgentStore = create((set, get) => ({
         color: COLORS[i % COLORS.length],
       }));
       usePointsStore.getState().setPointsForObject(createdId, points);
+      
+      // Add to timeline
+      const currentState = get();
+      get().addTimelineStep({
+        objectId: createdId,
+        name: objectName,
+        mesh: finalMesh,
+        messages: [...currentState.messages],
+        timestamp: Date.now(),
+      });
     }
 
     return createdId;
@@ -258,7 +316,13 @@ export const useAgentStore = create((set, get) => ({
     }),
 
   connect: async (initialPrompt = '') => {
-    set({ isLoading: true });
+    set({ 
+      isLoading: true,
+      timelineSteps: [],
+      currentStepIndex: -1,
+      messages: [],
+      objects: [],
+    });
     
     agentApi.onConnect = (sessionId) => {
       set({ sessionId, isConnected: true, isLoading: false });
@@ -277,8 +341,7 @@ export const useAgentStore = create((set, get) => ({
       });
 
       if (state.mesh?.vertices?.length > 0) {
-        const label = state.iteration != null ? `Step ${state.iteration}` : undefined;
-        get().addMeshObject(state.mesh, label);
+        get().addMeshObject(state.mesh);
       }
     };
 
