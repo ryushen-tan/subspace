@@ -45,6 +45,61 @@ const meshSignature = (mesh) => {
   }
 };
 
+const computeCenter = (verts = []) => {
+  if (!verts.length) return [0, 0, 0];
+  const cx = verts.reduce((s, v) => s + (v.p?.[0] ?? 0), 0) / verts.length;
+  const cy = verts.reduce((s, v) => s + (v.p?.[1] ?? 0), 0) / verts.length;
+  const cz = verts.reduce((s, v) => s + (v.p?.[2] ?? 0), 0) / verts.length;
+  return [cx, cy, cz];
+};
+
+const buildTransformedMesh = (originalMesh, transform) => {
+  if (!originalMesh?.vertices?.length) return originalMesh;
+  const { translation = [0, 0, 0], rotation = [0, 0, 0], scale = 100 } = transform || {};
+
+  const center = originalMesh.originalCenter || computeCenter(originalMesh.vertices);
+  const [tx, ty, tz] = translation;
+  const [rx, ry, rz] = rotation.map((r) => (r * Math.PI) / 180);
+  const s = scale / 100;
+
+  const rotatePoint = ([x, y, z]) => {
+    // rotation around X
+    let y1 = y * Math.cos(rx) - z * Math.sin(rx);
+    let z1 = y * Math.sin(rx) + z * Math.cos(rx);
+    y = y1; z = z1;
+    // rotation around Y
+    let x1 = x * Math.cos(ry) + z * Math.sin(ry);
+    z1 = -x * Math.sin(ry) + z * Math.cos(ry);
+    x = x1; z = z1;
+    // rotation around Z
+    x1 = x * Math.cos(rz) - y * Math.sin(rz);
+    y1 = x * Math.sin(rz) + y * Math.cos(rz);
+    return [x1, y1, z];
+  };
+
+  const nextVerts = originalMesh.vertices.map((v) => {
+    const rel = [
+      (v.p?.[0] ?? 0) - center[0],
+      (v.p?.[1] ?? 0) - center[1],
+      (v.p?.[2] ?? 0) - center[2],
+    ];
+    const scaled = rel.map((c) => c * s);
+    const rotated = rotatePoint(scaled);
+    const world = [
+      rotated[0] + center[0] + tx,
+      rotated[1] + center[1] + ty,
+      rotated[2] + center[2] + tz,
+    ];
+    return { ...v, p: world };
+  });
+
+  return {
+    ...originalMesh,
+    vertices: nextVerts,
+    originalCenter: originalMesh.originalCenter || center,
+  };
+};
+
 const extractNewGeometry = (allObjects, incomingMesh) => {
   if (!incomingMesh?.vertices?.length) return null;
 
@@ -189,26 +244,23 @@ export const useAgentStore = create((set, get) => ({
     const existing = state.objects.find((obj) => (obj.signature || meshSignature(obj.mesh)) === sig);
     if (existing) {
       set((s) => ({
-        objects: s.objects, // keep all visibilities unchanged
+        objects: s.objects,
         activeObjectId: existing.id,
         mesh: existing.mesh,
       }));
       return existing.id;
     }
 
-    // Extract only geometry not present in ANY existing object (position-based)
     let finalMesh = extractNewGeometry(state.objects, mesh);
-    
-    // Place on ground plane (min Y = 0) unless specified otherwise
+
     if (placeOnGround && finalMesh?.vertices?.length) {
-      const minY = Math.min(...finalMesh.vertices.map(v => v.p[1]));
+      const minY = Math.min(...finalMesh.vertices.map((v) => v.p[1]));
       finalMesh = {
         ...finalMesh,
-        vertices: finalMesh.vertices.map(v => ({ ...v, p: [v.p[0], v.p[1] - minY, v.p[2]] })),
+        vertices: finalMesh.vertices.map((v) => ({ ...v, p: [v.p[0], v.p[1] - minY, v.p[2]] })),
       };
     }
     if (!finalMesh) {
-      // No new geometry; just keep existing visibility and focus last
       const last = state.objects[state.objects.length - 1];
       if (last) {
         set({
@@ -224,35 +276,49 @@ export const useAgentStore = create((set, get) => ({
 
     let createdId = null;
     let objectName = null;
+    let createdMesh = finalMesh;
     set((s) => {
       const objectId = `obj-${Date.now()}-${s.objects.length + 1}`;
       createdId = objectId;
       objectName = name || `Obj ${s.timelineSteps.length + 1}`;
       const color = COLORS[s.objects.length % COLORS.length];
-      const newObject = { id: objectId, name: objectName, mesh: finalMesh, visible: true, signature: finalSig, color };
+      const originalCenter = computeCenter(finalMesh.vertices);
+      const originalMesh = { ...finalMesh, originalCenter };
+      const identityTransform = { translation: [0, 0, 0], rotation: [0, 0, 0], scale: 100 };
+      const meshWithTransform = buildTransformedMesh(originalMesh, identityTransform);
+      createdMesh = meshWithTransform;
+      const newObject = {
+        id: objectId,
+        name: objectName,
+        mesh: meshWithTransform,
+        visible: true,
+        signature: finalSig,
+        color,
+        originalMesh,
+        scalePercentage: 100,
+        transform: identityTransform,
+      };
 
       return {
-        // Keep all existing objects with their current visibility
         objects: [...s.objects, newObject],
-        mesh: finalMesh,
+        mesh: meshWithTransform,
         activeObjectId: objectId,
       };
     });
 
     if (createdId) {
-      const points = finalMesh.vertices.map((v, i) => ({
+      const points = createdMesh.vertices.map((v, i) => ({
         id: v.id,
         position: v.p,
         color: COLORS[i % COLORS.length],
       }));
       usePointsStore.getState().setPointsForObject(createdId, points);
-      
-      // Add to timeline
+
       const currentState = get();
       get().addTimelineStep({
         objectId: createdId,
         name: objectName,
-        mesh: finalMesh,
+        mesh: createdMesh,
         messages: [...currentState.messages],
         timestamp: Date.now(),
       });
@@ -306,24 +372,21 @@ export const useAgentStore = create((set, get) => ({
 
       const updatedObjects = state.objects.map((obj) => {
         if (obj.id !== objectId) return obj;
-        const nextVerts = (obj.mesh?.vertices || []).map((v, i) => ({
-          ...v,
-          p: [
-            (v.p?.[0] ?? 0) + dx,
-            (v.p?.[1] ?? 0) + dy,
-            (v.p?.[2] ?? 0) + dz,
-          ],
-          color: v.color || COLORS[i % COLORS.length],
-        }));
-        const nextMesh = { ...obj.mesh, vertices: nextVerts };
-        // Keep point cloud in sync
-        const points = nextVerts.map((v, i) => ({
+        const baseTransform = obj.transform || { translation: [0, 0, 0], rotation: [0, 0, 0], scale: 100 };
+        const nextTranslation = [
+          (baseTransform.translation?.[0] || 0) + dx,
+          (baseTransform.translation?.[1] || 0) + dy,
+          (baseTransform.translation?.[2] || 0) + dz,
+        ];
+        const nextTransform = { ...baseTransform, translation: nextTranslation };
+        const nextMesh = buildTransformedMesh(obj.originalMesh || obj.mesh, nextTransform);
+        const points = (nextMesh.vertices || []).map((v, i) => ({
           id: v.id,
           position: v.p,
           color: COLORS[i % COLORS.length],
         }));
         usePointsStore.getState().setPointsForObject(objectId, points);
-        return { ...obj, mesh: nextMesh };
+        return { ...obj, mesh: nextMesh, transform: nextTransform };
       });
 
       const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
@@ -342,7 +405,8 @@ export const useAgentStore = create((set, get) => ({
       const obj = state.objects.find((o) => o.id === objectId);
       if (!obj?.mesh?.vertices?.length) return state;
 
-      const verts = obj.mesh.vertices;
+      // Use original mesh for reference point
+      const verts = obj.originalMesh?.vertices || obj.mesh.vertices;
       const centerX = verts.reduce((sum, v) => sum + v.p[0], 0) / verts.length;
       const centerY = verts.reduce((sum, v) => sum + v.p[1], 0) / verts.length;
       const centerZ = verts.reduce((sum, v) => sum + v.p[2], 0) / verts.length;
@@ -374,7 +438,9 @@ export const useAgentStore = create((set, get) => ({
 
       const updatedObjects = state.objects.map((o) => {
         if (o.id !== objectId) return o;
-        const nextVerts = (o.mesh?.vertices || []).map((v, i) => ({
+        // Scale from original mesh coordinates
+        const sourceVerts = o.originalMesh?.vertices || o.mesh.vertices;
+        const nextVerts = (sourceVerts || []).map((v, i) => ({
           ...v,
           p: rotatePoint(v.p, centerX, centerY, centerZ, rx, ry, rz),
           color: v.color || COLORS[i % COLORS.length],
@@ -386,7 +452,7 @@ export const useAgentStore = create((set, get) => ({
           color: COLORS[i % COLORS.length],
         }));
         usePointsStore.getState().setPointsForObject(objectId, points);
-        return { ...o, mesh: nextMesh };
+        return { ...o, mesh: nextMesh, scalePercentage: Math.round(scaleFactor * 100) };
       });
 
       const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
@@ -396,39 +462,26 @@ export const useAgentStore = create((set, get) => ({
       };
     }),
 
-  scaleObject: (objectId, scaleFactor) =>
+  scaleObject: (objectId, percentage) =>
     set((state) => {
-      if (!scaleFactor || scaleFactor <= 0) return state;
+      if (!percentage || percentage <= 0) return state;
 
-      // Get center of object
       const obj = state.objects.find((o) => o.id === objectId);
-      if (!obj?.mesh?.vertices?.length) return state;
+      if (!obj) return state;
 
-      const verts = obj.mesh.vertices;
-      const centerX = verts.reduce((sum, v) => sum + v.p[0], 0) / verts.length;
-      const centerY = verts.reduce((sum, v) => sum + v.p[1], 0) / verts.length;
-      const centerZ = verts.reduce((sum, v) => sum + v.p[2], 0) / verts.length;
+      const baseTransform = obj.transform || { translation: [0, 0, 0], rotation: [0, 0, 0], scale: 100 };
+      const nextTransform = { ...baseTransform, scale: percentage };
+      const nextMesh = buildTransformedMesh(obj.originalMesh || obj.mesh, nextTransform);
+      const points = (nextMesh.vertices || []).map((v, i) => ({
+        id: v.id,
+        position: v.p,
+        color: COLORS[i % COLORS.length],
+      }));
+      usePointsStore.getState().setPointsForObject(objectId, points);
 
-      const updatedObjects = state.objects.map((o) => {
-        if (o.id !== objectId) return o;
-        const nextVerts = (o.mesh?.vertices || []).map((v, i) => ({
-          ...v,
-          p: [
-            centerX + (v.p[0] - centerX) * scaleFactor,
-            centerY + (v.p[1] - centerY) * scaleFactor,
-            centerZ + (v.p[2] - centerZ) * scaleFactor,
-          ],
-          color: v.color || COLORS[i % COLORS.length],
-        }));
-        const nextMesh = { ...o.mesh, vertices: nextVerts };
-        const points = nextVerts.map((v, i) => ({
-          id: v.id,
-          position: v.p,
-          color: COLORS[i % COLORS.length],
-        }));
-        usePointsStore.getState().setPointsForObject(objectId, points);
-        return { ...o, mesh: nextMesh };
-      });
+      const updatedObjects = state.objects.map((o) =>
+        o.id === objectId ? { ...o, mesh: nextMesh, scalePercentage: Math.round(percentage), transform: nextTransform } : o
+      );
 
       const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
       return {
@@ -439,22 +492,31 @@ export const useAgentStore = create((set, get) => ({
 
   setObjectPosition: (objectId, position) => {
     if (!position || position.length !== 3) return;
-
     const state = get();
     const obj = state.objects.find((o) => o.id === objectId);
-    if (!obj?.mesh?.vertices?.length) return;
+    if (!obj) return;
 
-    const verts = obj.mesh.vertices;
-    const centerX = verts.reduce((sum, v) => sum + v.p[0], 0) / verts.length;
-    const centerY = verts.reduce((sum, v) => sum + v.p[1], 0) / verts.length;
-    const centerZ = verts.reduce((sum, v) => sum + v.p[2], 0) / verts.length;
-
+    const original = obj.originalMesh || obj.mesh;
+    const originalCenter = original.originalCenter || computeCenter(original.vertices);
     const [newX, newY, newZ] = position;
-    const dx = newX - centerX;
-    const dy = newY - centerY;
-    const dz = newZ - centerZ;
+    const nextTranslation = [newX - originalCenter[0], newY - originalCenter[1], newZ - originalCenter[2]];
 
-    get().translateObject(objectId, [dx, dy, dz]);
+    const baseTransform = obj.transform || { translation: [0, 0, 0], rotation: [0, 0, 0], scale: 100 };
+    const nextTransform = { ...baseTransform, translation: nextTranslation };
+    const nextMesh = buildTransformedMesh(original, nextTransform);
+    const points = (nextMesh.vertices || []).map((v, i) => ({
+      id: v.id,
+      position: v.p,
+      color: COLORS[i % COLORS.length],
+    }));
+    usePointsStore.getState().setPointsForObject(objectId, points);
+
+    const updatedObjects = state.objects.map((o) =>
+      o.id === objectId ? { ...o, mesh: nextMesh, transform: nextTransform } : o
+    );
+
+    const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
+    set({ objects: updatedObjects, mesh: activeUpdated?.mesh || state.mesh });
   },
 
   setActiveObject: (objectId) => {
@@ -673,4 +735,6 @@ export const useAgentStore = create((set, get) => ({
     agentApi.close();
     set({ isConnected: false, sessionId: null });
   },
-}));
+  
+  }));
+  

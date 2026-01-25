@@ -24,8 +24,24 @@ const TransformControls = ({ objectId }) => {
   }, [object?.mesh?.vertices]);
 
   const [rotation, setRotation] = useState([0, 0, 0]);
-  const [scale, setScale] = useState(1);
+  const [scalePercentage, setScalePercentage] = useState(100);
   const [expandedSection, setExpandedSection] = useState(null);
+
+  useEffect(() => {
+    if (object?.transform?.rotation) {
+      setRotation(object.transform.rotation);
+    }
+    if (object?.transform?.scale) {
+      setScalePercentage(object.transform.scale);
+    }
+  }, [object?.id, object?.transform?.rotation, object?.transform?.scale]);
+
+  // Sync scale percentage when object changes
+  useEffect(() => {
+    if (object) {
+      setScalePercentage(object.scalePercentage || 100);
+    }
+  }, [object?.id, object?.scalePercentage]);
 
   const handlePositionChange = (axis, value) => {
     const newPos = [...position];
@@ -42,9 +58,9 @@ const TransformControls = ({ objectId }) => {
   };
 
   const handleScaleChange = (value) => {
-    const scaleFactor = parseFloat(value) || 1;
-    setScale(scaleFactor);
-    scaleObject(objectId, scaleFactor);
+    const percentage = parseFloat(value) || 100;
+    setScalePercentage(percentage);
+    scaleObject(objectId, percentage);
   };
 
   const axisLabels = ['X', 'Y', 'Z'];
@@ -139,23 +155,24 @@ const TransformControls = ({ objectId }) => {
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                value={scale.toFixed(2)}
+                value={scalePercentage.toFixed(0)}
                 onChange={(e) => handleScaleChange(e.target.value)}
                 className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/50"
-                step="0.1"
-                min="0.01"
+                step="1"
+                min="1"
               />
-              <span className="text-xs text-gray-400">×</span>
+              <span className="text-xs text-gray-400">%</span>
             </div>
             <input
               type="range"
-              min="0.1"
-              max="5"
-              step="0.1"
-              value={scale}
+              min="10"
+              max="500"
+              step="1"
+              value={scalePercentage}
               onChange={(e) => handleScaleChange(e.target.value)}
               className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
             />
+            <div className="text-xs text-gray-500 text-center">Original size: 100%</div>
           </div>
         )}
       </div>
