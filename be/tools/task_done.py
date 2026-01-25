@@ -21,5 +21,9 @@ class TaskDoneTool(Tool):
         task_index = kwargs.get("task_index", 0)
         if 0 <= task_index < len(state.todo):
             state.todo[task_index]["done"] = True
+            # Auto-complete if all tasks are done and mesh exists
+            if state.todo and all(t.get("done", False) for t in state.todo):
+                if state.mesh.vertices:
+                    state.task_complete = True
             return {"success": True, "task": state.todo[task_index]}
         return {"success": False, "error": "Invalid task index"}

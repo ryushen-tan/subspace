@@ -333,7 +333,10 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />
     </Canvas>
-    <WorkspaceBottomBar onPreviewClick={onPreviewClick} />
+    <WorkspaceBottomBar 
+      onPreviewClick={onPreviewClick} 
+      onRotateClick={startManualIdle}
+    />
     </div>
   );
 }

@@ -318,13 +318,25 @@ async def agent_ws(websocket: WebSocket):
                 try:
                     while not session.state.task_complete and not session.state.finalized:
                         response = agent_runner.run_step(session_id)
+                        
                         await websocket.send_json({
                             "type": "response",
                             "response": response.model_dump() if response else None,
                             "state": session.state.model_dump(),
                         })
+                        
+                        # Check immediately after run_step if task is complete and break
+                        if session.state.task_complete or session.state.finalized:
+                            break
+                            
                         if response and response.error:
                             break
+                        # Auto-stop if all tasks are done and mesh was submitted
+                        if session.state.todo and all(t.get("done", False) for t in session.state.todo):
+                            if session.state.mesh.vertices:
+                                # If mesh exists and all tasks done, stop to prevent infinite loop
+                                session.state.task_complete = True
+                                break
                 except Exception as e:
                     await websocket.send_json({
                         "type": "error",

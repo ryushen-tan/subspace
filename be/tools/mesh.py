@@ -112,4 +112,10 @@ class SubmitMeshTool(Tool):
         }
         if corrections:
             result["auto_corrections"] = corrections
+        
+        # Auto-complete if all tasks are done (safety check)
+        if state.todo and all(t.get("done", False) for t in state.todo):
+            state.task_complete = True
+            result["message"] = "Mesh submitted. All tasks complete. Generation stopped."
+        
         return result

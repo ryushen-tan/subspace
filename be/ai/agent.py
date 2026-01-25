@@ -151,6 +151,10 @@ class AgentRunner:
             "content": str(tool_response.result or tool_response.error),
         })
 
+        # If finish_task was called, ensure we stop immediately
+        if tool_call.name == "finish_task" and tool_response.result:
+            session.state.task_complete = True
+
         session.state.iteration += 1
         return tool_response
 
