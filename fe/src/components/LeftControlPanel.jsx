@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Layers, Pencil, Trash2 } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 
@@ -11,6 +11,16 @@ const LeftControlPanel = () => {
 
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
+  const [hexValues, setHexValues] = useState({});
+
+  useEffect(() => {
+    // Sync local hex cache when objects list changes
+    const next = {};
+    objects.forEach((obj) => {
+      next[obj.id] = obj.color || '#4F46E5';
+    });
+    setHexValues(next);
+  }, [objects]);
 
   const hslToHex = (h, s, l) => {
     // h:0-360, s/l:0-100
@@ -55,13 +65,16 @@ const LeftControlPanel = () => {
     const h = (x / rect.width) * 360;
     const l = 70 - (y / rect.height) * 30; // 70 -> 40 range
     const hex = hslToHex(h, 85, l);
+    setHexValues((prev) => ({ ...prev, [object.id]: hex }));
     updateObjectColor(object.id, hex);
   };
 
   const handleHexInput = (val, object) => {
     const normalized = val.startsWith('#') ? val : `#${val}`;
     if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(normalized)) {
-      updateObjectColor(object.id, normalized.toUpperCase());
+      const clean = normalized.toUpperCase();
+      setHexValues((prev) => ({ ...prev, [object.id]: clean }));
+      updateObjectColor(object.id, clean);
     }
   };
 
@@ -156,7 +169,7 @@ const LeftControlPanel = () => {
               </div>
             )}
             {objects.map((object) => {
-              const color = object.color || '#4f46e5';
+              const color = hexValues[object.id] || object.color || '#4f46e5';
               const { h, l } = hexToHsl(color);
               const markerX = `${(h / 360) * 100}%`;
               const markerY = `${((70 - l) / 30) * 100}%`;
@@ -242,7 +255,8 @@ const LeftControlPanel = () => {
                       <div className="w-8 h-8 rounded border border-white/10" style={{ background: color }} />
                       <input
                         type="text"
-                        defaultValue={color}
+                        value={hexValues[object.id] || color}
+                        onChange={(e) => setHexValues((prev) => ({ ...prev, [object.id]: e.target.value }))}
                         onBlur={(e) => handleHexInput(e.target.value, object)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') handleHexInput(e.currentTarget.value, object);
