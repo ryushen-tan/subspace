@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- 3D Cube Icon for Subspace -->
+  <defs>
+    <linearGradient id="cubeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#888888;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Isometric cube faces -->
+  <!-- Top face -->
+  <path d="M32 12 L48 20 L40 32 L24 24 Z" fill="url(#cubeGradient)" opacity="0.9"/>
+  <!-- Right face -->
+  <path d="M48 20 L48 36 L40 44 L40 32 Z" fill="url(#cubeGradient)" opacity="0.7"/>
+  <!-- Left face -->
+  <path d="M32 12 L32 28 L24 36 L24 24 Z" fill="url(#cubeGradient)" opacity="0.8"/>
+  
+  <!-- Wireframe edges for 3D effect -->
+  <path d="M32 12 L48 20 M48 20 L40 32 M40 32 L24 24 M24 24 L32 12" 
+        stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M32 12 L32 28 M48 20 L48 36 M40 32 L40 44 M24 24 L24 36" 
+        stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M32 28 L48 36 M48 36 L40 44 M40 44 L24 36 M24 36 L32 28" 
+        stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.6"/>
+</svg>
