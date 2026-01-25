@@ -9,12 +9,12 @@ import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
 import WorkspaceBottomBar from '../components/WorkspaceBottomBar';
 
-function MeshSurface({ mesh, pointOverrides }) {
+function MeshSurface({ mesh, pointOverrides, color }) {
   const geometry = useMemo(() => buildMeshGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
     <mesh geometry={geometry}>
-      <meshPhongMaterial color="#4f46e5" side={THREE.DoubleSide} transparent opacity={0.8} flatShading />
+      <meshPhongMaterial color={color || '#4f46e5'} side={THREE.DoubleSide} transparent opacity={0.8} flatShading />
     </mesh>
   );
 }
@@ -216,7 +216,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
       {/* Mesh Surface & Edges */}
       {objects.map((obj) => (
         <group key={obj.id} visible={obj.visible}>
-          <MeshSurface mesh={obj.mesh} pointOverrides={pointOverrides} />
+          <MeshSurface mesh={obj.mesh} pointOverrides={pointOverrides} color={obj.color} />
           <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} />
         </group>
       ))}
