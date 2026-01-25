@@ -233,24 +233,25 @@ Respond ONLY with valid JSON in this exact format:
 
     @staticmethod
     def _create_cylinder(radius: float, height: float, depth: float) -> Mesh:
-        """Create a cylinder mesh"""
+        """Create a cylinder mesh with higher detail"""
+        import math
         r = min(radius, depth) / 2
         h = height / 2
-        segments = 8
+        segments = 24  # Increased from 8 to 24 for smoother appearance
         
         vertices = []
         # Bottom circle
         for i in range(segments):
-            angle = (2 * 3.14159 * i) / segments
-            x = r * (angle ** 0.5) * 0.5
-            y = r * (1 - (angle ** 0.5) * 0.5)
+            angle = (2 * math.pi * i) / segments
+            x = r * math.cos(angle)
+            y = r * math.sin(angle)
             vertices.append(Vertex(id=f"b{i}", p=(x, y, -h), source="photo"))
         
         # Top circle
         for i in range(segments):
-            angle = (2 * 3.14159 * i) / segments
-            x = r * (angle ** 0.5) * 0.5
-            y = r * (1 - (angle ** 0.5) * 0.5)
+            angle = (2 * math.pi * i) / segments
+            x = r * math.cos(angle)
+            y = r * math.sin(angle)
             vertices.append(Vertex(id=f"t{i}", p=(x, y, h), source="photo"))
         
         # Center points for degenerate faces
@@ -275,60 +276,86 @@ Respond ONLY with valid JSON in this exact format:
 
     @staticmethod
     def _create_sphere(radius: float) -> Mesh:
-        """Create a sphere mesh (low-poly)"""
+        """Create a sphere mesh with UV sphere topology for better quality"""
+        import math
         vertices = []
         r = radius / 2
         
-        # Create icosahedron
-        t = (1 + 5 ** 0.5) / 2
+        # Create UV sphere with more segments
+        lat_segments = 16  # Latitude segments
+        lon_segments = 24  # Longitude segments
         
-        points = [
-            (-1, t, 0), (1, t, 0), (-1, -t, 0), (1, -t, 0),
-            (0, -1, t), (0, 1, t), (0, -1, -t), (0, 1, -t),
-            (t, 0, -1), (t, 0, 1), (-t, 0, -1), (-t, 0, 1),
-        ]
+        vertex_id = 0
+        # Top pole
+        vertices.append(Vertex(id=f"v{vertex_id}", p=(0, 0, r), source="photo"))
+        vertex_id += 1
         
-        for i, (x, y, z) in enumerate(points):
-            length = (x*x + y*y + z*z) ** 0.5
-            vertices.append(Vertex(id=str(i), p=(x/length*r, y/length*r, z/length*r), source="photo"))
+        # Middle rows
+        for lat in range(1, lat_segments):
+            theta = math.pi * lat / lat_segments
+            for lon in range(lon_segments):
+                phi = 2 * math.pi * lon / lon_segments
+                x = r * math.sin(theta) * math.cos(phi)
+                y = r * math.sin(theta) * math.sin(phi)
+                z = r * math.cos(theta)
+                vertices.append(Vertex(id=f"v{vertex_id}", p=(x, y, z), source="photo"))
+                vertex_id += 1
         
-        # Icosahedron faces
-        faces = [
-            ("0", "11", "5"), ("0", "5", "1"), ("0", "1", "7"), ("0", "7", "10"), ("0", "10", "11"),
-            ("1", "5", "9"), ("5", "11", "4"), ("11", "10", "2"), ("10", "7", "6"), ("7", "1", "8"),
-            ("3", "9", "4"), ("3", "4", "2"), ("3", "2", "6"), ("3", "6", "8"), ("3", "8", "9"),
-            ("4", "9", "5"), ("2", "4", "11"), ("6", "2", "10"), ("8", "6", "7"), ("9", "8", "1"),
-        ]
+        # Bottom pole
+        vertices.append(Vertex(id=f"v{vertex_id}", p=(0, 0, -r), source="photo"))
         
-        edges = [
-            ("0", "1"), ("0", "5"), ("0", "7"), ("0", "10"), ("0", "11"),
-            ("1", "5"), ("1", "7"), ("1", "8"), ("1", "9"),
-            ("2", "3"), ("2", "4"), ("2", "6"), ("2", "10"), ("2", "11"),
-            ("3", "4"), ("3", "6"), ("3", "8"), ("3", "9"),
-            ("4", "5"), ("4", "9"), ("4", "11"),
-            ("5", "9"), ("5", "11"),
-            ("6", "7"), ("6", "8"), ("6", "10"),
-            ("7", "8"), ("7", "10"),
-            ("8", "9"),
-            ("10", "11"),
-        ]
+        # Generate faces
+        faces = []
+        # Top cap
+        for lon in range(lon_segments):
+            next_lon = (lon + 1) % lon_segments
+            faces.append(("v0", f"v{lon + 1}", f"v{next_lon + 1}"))
+        
+        # Middle quads
+        for lat in range(1, lat_segments - 1):
+            for lon in range(lon_segments):
+                next_lon = (lon + 1) % lon_segments
+                v1 = 1 + (lat - 1) * lon_segments + lon
+                v2 = 1 + (lat - 1) * lon_segments + next_lon
+                v3 = 1 + lat * lon_segments + next_lon
+                v4 = 1 + lat * lon_segments + lon
+                faces.append((f"v{v1}", f"v{v2}", f"v{v3}", f"v{v4}"))
+        
+        # Bottom cap
+        bottom_pole = vertex_id
+        for lon in range(lon_segments):
+            next_lon = (lon + 1) % lon_segments
+            v1 = 1 + (lat_segments - 2) * lon_segments + lon
+            v2 = 1 + (lat_segments - 2) * lon_segments + next_lon
+            faces.append((f"v{v1}", f"v{v2}", f"v{bottom_pole}"))
+        
+        # Generate edges from faces
+        edges = []
+        edge_set = set()
+        for face in faces:
+            for i in range(len(face)):
+                edge = tuple(sorted([face[i], face[(i + 1) % len(face)]]))
+                if edge not in edge_set:
+                    edges.append(edge)
+                    edge_set.add(edge)
         
         return Mesh(vertices=vertices, faces=faces, edges=edges, scale_factor=1.0)
 
     @staticmethod
     def _create_cone(radius: float, height: float) -> Mesh:
-        """Create a cone mesh"""
+        """Create a cone mesh with higher detail"""
+        import math
         r = radius / 2
         h = height / 2
-        segments = 8
+        segments = 24  # Increased from 8 to 24 for smoother appearance
         
         vertices = []
         
         # Base circle
         for i in range(segments):
-            angle = (2 * 3.14159 * i) / segments
-            x = r * (angle ** 0.5) * 0.5
-            y = r * (1 - (angle ** 0.5) * 0.5)
+            angle = (2 * math.pi * i) / segments
+            x = r * math.cos(angle)
+            y = r * math.sin(angle)
             vertices.append(Vertex(id=f"b{i}", p=(x, y, -h), source="photo"))
         
         # Apex
