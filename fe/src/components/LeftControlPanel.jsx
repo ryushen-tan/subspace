@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
@@ -18,6 +18,7 @@ const LeftControlPanel = () => {
   const [draftName, setDraftName] = useState('');
   const [hexValues, setHexValues] = useState({});
   const [colorPickerOpen, setColorPickerOpen] = useState(null); // Track which object's color picker is open
+  const colorPickerRef = useRef(null);
 
   useEffect(() => {
     // Sync local hex cache when objects list changes
@@ -27,6 +28,25 @@ const LeftControlPanel = () => {
     });
     setHexValues(next);
   }, [objects]);
+
+  // Close color picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(event.target)) {
+        setColorPickerOpen(null);
+      }
+    };
+
+    if (colorPickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [colorPickerOpen]);
+
+  // Close color picker when active object changes
+  useEffect(() => {
+    setColorPickerOpen(null);
+  }, [activeObjectId]);
 
   const hslToHex = (h, s, l) => {
     // h:0-360, s/l:0-100
@@ -231,7 +251,7 @@ const LeftControlPanel = () => {
 
                   {/* Color picker popup */}
                   {colorPickerOpen === object.id && (
-                    <div className="mt-2 p-3 bg-neutral-800/95 border border-white/20 rounded-lg space-y-2">
+                    <div ref={colorPickerRef} className="mt-2 p-3 bg-neutral-800/95 border border-white/20 rounded-lg space-y-2">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-gray-400">Color Picker</span>
                         <button
