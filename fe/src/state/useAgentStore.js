@@ -221,8 +221,8 @@ export const useAgentStore = create((set, get) => ({
       const newObject = { id: objectId, name: objectName, mesh: finalMesh, visible: true, signature: finalSig };
 
       return {
-        // Only the latest object stays visible to avoid duplicate geometry overlay; others remain but hidden
-        objects: [...s.objects.map((obj) => ({ ...obj, visible: false })), newObject],
+        // Keep all existing objects with their current visibility
+        objects: [...s.objects, newObject],
         mesh: finalMesh,
         activeObjectId: objectId,
       };
