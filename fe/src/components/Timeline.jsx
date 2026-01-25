@@ -92,7 +92,7 @@ const Timeline = () => {
       <motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] bg-neutral-950/40 backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-20"
+        className="absolute bottom-6 left-[150px] right-4 bg-neutral-950/40 backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-20"
       >
         <div className="px-3 py-2 flex items-center gap-3">
           {/* Compact Controls */}

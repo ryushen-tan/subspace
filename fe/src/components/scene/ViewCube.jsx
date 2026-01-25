@@ -3,13 +3,22 @@ import { useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 
 export function ViewCube({ controlsRef }) {
+  const { size } = useThree();
   
-  // GizmoHelper margin: [horizontal, vertical]
-  // For "top-left" alignment, position at top-left corner of canvas
-  // margin: [horizontal offset from left, vertical offset from top]
+  // Position ViewCube at bottom left
   const margin = useMemo(() => {
-    return [80, 80]; // 60px from left, 40px from top
-  }, []);
+    const viewportHeight = size.height;
+    const cubeSize = 80; // Approximate ViewCube size
+    const leftPadding = 80; // Padding from left edge
+    const bottomOffset = 20; // Positive value to push cube down (lower on screen)
+    
+    // Position at bottom left: left padding from left, positioned lower
+    // Larger topMargin value moves the cube down
+    const leftMargin = leftPadding;
+    const topMargin = viewportHeight - cubeSize + bottomOffset;
+    
+    return [leftMargin, topMargin];
+  }, [size.width, size.height]);
 
   return (
     <GizmoHelper
