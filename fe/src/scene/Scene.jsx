@@ -298,7 +298,22 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
           showZ
           translationSnap={0.1}
           onMouseDown={() => setDragging(true)}
-          onMouseUp={() => setDragging(false)}
+          onMouseUp={() => {
+            setDragging(false);
+            // Log a timeline step for object translation when dragging ends
+            if (activeObject) {
+              const state = useAgentStore.getState();
+              const obj = state.objects.find((o) => o.id === activeObject.id);
+              if (obj) {
+                state.addTimelineStep({
+                  objectId: obj.id,
+                  name: `Moved ${obj.name || 'object'}`,
+                  mesh: obj.mesh,
+                  timestamp: Date.now(),
+                });
+              }
+            }
+          }}
           onObjectChange={() => {
             if (!activeObject || !activeHandleRef.current) return;
             const current = activeHandleRef.current.position;

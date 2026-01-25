@@ -12,6 +12,7 @@ export function DraggablePoint({ point }) {
   const points = usePointsStore((state) => state.points);
   const setDragging = usePointsStore((state) => state.setDragging);
   const updateVertexPosition = useAgentStore((state) => state.updateVertexPosition);
+  const addTimelineStep = useAgentStore((state) => state.addTimelineStep);
   const isSelected = selectedPointIds.includes(point.id);
   const isMultiSelected = selectedPointIds.length > 1 && isSelected;
   const [transformTarget, setTransformTarget] = useState(null);
@@ -77,6 +78,22 @@ export function DraggablePoint({ point }) {
             setDragging(false);
             document.body.style.cursor = 'grab';
             lastPositionRef.current = null;
+
+            // Log a timeline step for this vertex edit
+            const objectId = point.objectId;
+            if (objectId) {
+              const state = useAgentStore.getState();
+              const obj = state.objects.find((o) => o.id === objectId);
+              if (obj) {
+                const movedCount = isMultiSelected ? selectedPointIds.length : 1;
+                addTimelineStep({
+                  objectId,
+                  name: movedCount > 1 ? `Moved ${movedCount} vertices` : 'Moved vertex',
+                  mesh: obj.mesh,
+                  timestamp: Date.now(),
+                });
+              }
+            }
           }}
           onObjectChange={() => {
             if (!meshRef.current) return;
