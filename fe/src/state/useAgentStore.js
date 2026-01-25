@@ -14,6 +14,46 @@ const meshesAreEqual = (a, b) => {
   }
 };
 
+const meshSignature = (mesh) => {
+  if (!mesh) return '';
+  try {
+    const verts = (mesh.vertices || []).map((v) => `${v.id}:${v.p.join(',')}`).sort();
+    const edges = (mesh.edges || []).map((e) => e.join('-')).sort();
+    const faces = (mesh.faces || []).map((f) => f.join(',')).sort();
+    const loopNames = mesh.loops ? Object.keys(mesh.loops).sort() : [];
+    const loops = loopNames.map((k) => `${k}:${(mesh.loops[k] || []).join(',')}`);
+    const stitch = (mesh.stitch || []).map((s) => s.join('-')).sort();
+    return [verts.join('|'), edges.join('|'), faces.join('|'), loops.join('|'), stitch.join('|')].join('::');
+  } catch (err) {
+    console.warn('Mesh signature failed', err);
+    return '';
+  }
+};
+
+const extractDeltaMesh = (prev, next) => {
+  if (!prev || !next) return next;
+  const prevIds = new Set((prev.vertices || []).map((v) => String(v.id)));
+  const nextVerts = next.vertices || [];
+  const newVertices = nextVerts.filter((v) => !prevIds.has(String(v.id)));
+
+  // If nothing new, keep next as-is
+  if (!newVertices.length) return next;
+
+  const newIdSet = new Set(newVertices.map((v) => String(v.id)));
+
+  const pickEdges = (next.edges || []).filter((e) => newIdSet.has(String(e[0])) && newIdSet.has(String(e[1])));
+  const pickFaces = (next.faces || []).filter((f) => f.some((vid) => newIdSet.has(String(vid))));
+
+  return {
+    vertices: newVertices,
+    edges: pickEdges,
+    faces: pickFaces,
+    loops: null,
+    stitch: null,
+    scale_factor: next.scale_factor || 1,
+  };
+};
+
 export const useAgentStore = create((set, get) => ({
   sessionId: null,
   isConnected: false,
@@ -30,25 +70,43 @@ export const useAgentStore = create((set, get) => ({
     if (!mesh?.vertices?.length) return null;
 
     const state = get();
-    const existing = state.objects.find((obj) => meshesAreEqual(obj.mesh, mesh));
-    if (existing) return existing.id;
+    const sig = meshSignature(mesh);
+    const existing = state.objects.find((obj) => (obj.signature || meshSignature(obj.mesh)) === sig);
+    if (existing) {
+      set((s) => ({
+        objects: s.objects.map((obj) => ({
+          ...obj,
+          visible: obj.id === existing.id,
+        })),
+        activeObjectId: existing.id,
+        mesh: existing.mesh,
+      }));
+      return existing.id;
+    }
+
+    // If previous layer exists and new mesh contains prior geometry plus additions, isolate only the new geometry
+    const prev = state.objects[state.objects.length - 1]?.mesh;
+    const maybeDelta = extractDeltaMesh(prev, mesh);
+    const finalMesh = maybeDelta || mesh;
+    const finalSig = meshSignature(finalMesh);
 
     let createdId = null;
     set((s) => {
       const objectId = `obj-${Date.now()}-${s.objects.length + 1}`;
       createdId = objectId;
       const label = name || `Object ${s.objects.length + 1}`;
-      const newObject = { id: objectId, name: label, mesh, visible: true };
+      const newObject = { id: objectId, name: label, mesh: finalMesh, visible: true, signature: finalSig };
 
       return {
-        objects: [...s.objects, newObject],
-        mesh,
+        // Only the latest object stays visible to avoid duplicate geometry overlay; others remain but hidden
+        objects: [...s.objects.map((obj) => ({ ...obj, visible: false })), newObject],
+        mesh: finalMesh,
         activeObjectId: objectId,
       };
     });
 
     if (createdId) {
-      const points = mesh.vertices.map((v, i) => ({
+      const points = finalMesh.vertices.map((v, i) => ({
         id: v.id,
         position: v.p,
         color: COLORS[i % COLORS.length],
