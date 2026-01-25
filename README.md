@@ -1,4 +1,4 @@
-# 3D Design Agent - Monorepo Setup
+# subspace - Monorepo Setup
 
 This repo contains:
 - Backend (FastAPI) in [be](be)
@@ -11,6 +11,34 @@ Follow these steps on macOS to install dependencies and run everything locally.
 - Python 3.11
 - Node.js (18+ recommended)
 - PocketBase
+
+## Environment Variables
+Set up environment files for Backend and Frontend:
+
+### Backend (`be/.env`)
+Copy the example file and update secrets (OpenRouter and ElevenLabs only):
+```bash
+cd ./be
+cp .env.example .env
+```
+Keys you may need:
+- `openrouter_api_key` (backend only; do NOT put in frontend)
+- `VITE_ELEVENLABS_API_KEY`
+
+The backend automatically loads variables from `be/.env` (via Pydantic Settings).
+
+### Frontend (`fe/.env`)
+Copy the example file and update values (ElevenLabs only):
+```bash
+cd ./fe
+cp .env.example .env
+```
+Variables are exposed only if prefixed with `VITE_`:
+- `VITE_ELEVENLABS_API_KEY`
+
+Note: The OpenRouter API key is used by the backend only and should not be present in `fe/.env`.
+
+Do not commit `.env` files with secrets.
 
 ### Install prerequisites
 ```bash
