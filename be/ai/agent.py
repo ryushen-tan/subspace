@@ -53,7 +53,7 @@ class AgentRunner:
                     break
             session.history.insert(insert_pos, {"role": "system", "content": analysis_message})
 
-    def notify_mesh_uploaded(self, session_id: str, file_type: str = "STL", filename: str = "") -> None:
+    def notify_mesh_uploaded(self, session_id: str, file_type: str = "STL", filename: str = "", summary: str = "") -> None:
         """Notify the agent that a mesh file has been uploaded."""
         session = self.sessions.get(session_id)
         if session and session.state.mesh and session.state.mesh.vertices:
@@ -69,7 +69,10 @@ class AgentRunner:
                 upload_message += f", {face_count} faces"
             if edge_count > 0:
                 upload_message += f", and {edge_count} edges"
-            upload_message += ". The mesh is now available in the session state. When the user asks about the uploaded file, use the inspect_mesh tool to examine the mesh structure and then describe what the object looks like based on the vertices, faces, and geometry."
+            upload_message += ". The mesh is now available in the session state."
+            if summary:
+                upload_message += f"\n\n{summary}"
+            upload_message += "\n\nWhen the user asks about the uploaded file, use the inspect_mesh tool to examine the mesh structure and then describe what the object looks like based on the vertices, faces, and geometry."
             
             # Insert after system prompt but before user messages
             insert_pos = 1

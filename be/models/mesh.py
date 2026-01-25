@@ -5,6 +5,7 @@ from typing import Optional
 class Vertex(BaseModel):
     id: str
     p: tuple[float, float, float]
+    source: str | None = None
 
 
 class Mesh(BaseModel):

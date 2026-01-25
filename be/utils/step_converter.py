@@ -3,7 +3,7 @@ import json
 import sys
 import os
 
-def step_to_mesh(step_path):
+def step_to_mesh(step_path, source_name: str | None = None, simplify: bool = True, target_vertices: int = 100):
     try:
         # Load the STEP file
         part = cq.importers.importStep(step_path)
@@ -67,13 +67,34 @@ def step_to_mesh(step_path):
             # Map old indices to new deduplicated indices
             new_face = [str(index_map[idx]) for idx in f]
             faces.append(new_face)
-            
-        return {
+        
+        # Add source to vertices
+        if source_name:
+            for v in vertices:
+                v["source"] = source_name
+        
+        result = {
             "vertices": vertices,
             "faces": faces,
-            "edges": [], # We can extract edges if needed, but faces are enough for display
+            "edges": [],
             "scale_factor": scale_factor
         }
+        
+        # Apply simplification if needed
+        if simplify and len(vertices) > target_vertices:
+            from mesh_simplifier import simplify_mesh, get_simplified_description
+            simplified = simplify_mesh(vertices, faces, target_vertices, source_name)
+            result["simplified_vertices"] = simplified["vertices"]
+            result["simplified_faces"] = simplified["faces"]
+            result["summary"] = simplified["summary"]
+            result["summary_text"] = get_simplified_description(simplified["summary"])
+        else:
+            from mesh_simplifier import generate_summary, get_simplified_description
+            summary = generate_summary(vertices, faces, source_name)
+            result["summary"] = summary
+            result["summary_text"] = get_simplified_description(summary)
+            
+        return result
     except Exception as e:
         return {"error": str(e)}
 
@@ -87,5 +108,6 @@ if __name__ == "__main__":
         print(json.dumps({"error": f"File not found: {step_path}"}))
         sys.exit(1)
         
-    result = step_to_mesh(step_path)
+    source_name = os.path.basename(step_path)
+    result = step_to_mesh(step_path, source_name=source_name)
     print(json.dumps(result))

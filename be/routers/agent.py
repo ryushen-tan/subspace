@@ -76,10 +76,14 @@ async def upload_step(file: UploadFile = File(...), session_id: str | None = Non
         if session_id:
             session = agent_runner.get_session(session_id)
             if session:
-                session.state.mesh = Mesh(**mesh_data)
-                # Inject analysis into agent context
+                session.state.mesh = Mesh(**{k: v for k, v in mesh_data.items() 
+                                              if k in ['vertices', 'faces', 'edges', 'scale_factor']})
+                # Inject analysis and summary into agent context
+                summary_text = mesh_data.get("summary_text", "")
                 if analysis:
-                    agent_runner.inject_step_analysis(session_id, analysis)
+                    agent_runner.inject_step_analysis(session_id, f"{analysis}\n\nMesh summary: {summary_text}")
+                elif summary_text:
+                    agent_runner.inject_step_analysis(session_id, f"Mesh summary: {summary_text}")
         
         # Return mesh data with analysis
         result_data = mesh_data.copy()
@@ -126,9 +130,11 @@ async def upload_stl(file: UploadFile = File(...), session_id: str | None = None
         if session_id:
             session = agent_runner.get_session(session_id)
             if session:
-                session.state.mesh = Mesh(**mesh_data)
-                # Notify agent about the uploaded mesh
-                agent_runner.notify_mesh_uploaded(session_id, file_type="STL", filename=file.filename)
+                session.state.mesh = Mesh(**{k: v for k, v in mesh_data.items() 
+                                              if k in ['vertices', 'faces', 'edges', 'scale_factor']})
+                # Notify agent about the uploaded mesh with summary
+                summary_text = mesh_data.get("summary_text", "")
+                agent_runner.notify_mesh_uploaded(session_id, file_type="STL", filename=file.filename, summary=summary_text)
         
         return mesh_data
     finally:

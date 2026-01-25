@@ -135,7 +135,7 @@ def read_stl_ascii(filepath):
     
     return vertices, faces
 
-def stl_to_mesh(stl_path):
+def stl_to_mesh(stl_path, source_name: str | None = None, simplify: bool = True, target_vertices: int = 100):
     """Convert STL file to mesh format"""
     try:
         # Determine if binary or ASCII
@@ -172,14 +172,32 @@ def stl_to_mesh(stl_path):
             p = np.array(v["p"])
             scaled_p = (p - center) * scale_factor
             v["p"] = [float(x) for x in scaled_p]
+            if source_name:
+                v["source"] = source_name
             scaled_vertices.append(v)
         
-        return {
+        result = {
             "vertices": scaled_vertices,
             "faces": faces,
             "edges": [],
             "scale_factor": scale_factor
         }
+        
+        # Apply simplification if needed
+        if simplify and len(scaled_vertices) > target_vertices:
+            from mesh_simplifier import simplify_mesh, get_simplified_description
+            simplified = simplify_mesh(scaled_vertices, faces, target_vertices, source_name)
+            result["simplified_vertices"] = simplified["vertices"]
+            result["simplified_faces"] = simplified["faces"]
+            result["summary"] = simplified["summary"]
+            result["summary_text"] = get_simplified_description(simplified["summary"])
+        else:
+            from mesh_simplifier import generate_summary, get_simplified_description
+            summary = generate_summary(scaled_vertices, faces, source_name)
+            result["summary"] = summary
+            result["summary_text"] = get_simplified_description(summary)
+        
+        return result
     except Exception as e:
         return {"error": str(e)}
 
@@ -193,5 +211,6 @@ if __name__ == "__main__":
         print(json.dumps({"error": f"File not found: {stl_path}"}))
         sys.exit(1)
     
-    result = stl_to_mesh(stl_path)
+    source_name = os.path.basename(stl_path)
+    result = stl_to_mesh(stl_path, source_name=source_name)
     print(json.dumps(result))
