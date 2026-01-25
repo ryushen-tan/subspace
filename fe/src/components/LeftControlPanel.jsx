@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown, User } from 'lucide-react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown, User, LogIn, LogOut } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { useAuthStore } from '../state/useAuthStore';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import TransformControls from './TransformControls';
 
 const LeftControlPanel = ({ onPhotoClick }) => {
@@ -19,6 +20,9 @@ const LeftControlPanel = ({ onPhotoClick }) => {
   const setProjectName = useAgentStore((state) => state.setProjectName);
   const setProjectDescription = useAgentStore((state) => state.setProjectDescription);
   const authUser = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
 
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
@@ -410,6 +414,24 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                     {authUser ? 'Active' : 'Not signed in'}
                   </div>
                 </div>
+                <button
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      logout();
+                      navigate('/');
+                    } else {
+                      navigate('/login');
+                    }
+                  }}
+                  className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-indigo-400 transition-colors flex-shrink-0 cursor-pointer"
+                  title={isAuthenticated ? 'Logout' : 'Login'}
+                >
+                  {isAuthenticated ? (
+                    <LogOut className="w-4 h-4" />
+                  ) : (
+                    <LogIn className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
           </div>

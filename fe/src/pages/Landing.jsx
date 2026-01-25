@@ -84,7 +84,7 @@ const Landing = () => {
                         className="flex flex-col sm:flex-row items-start gap-4"
                     >
                         <Link 
-                            to="/edit"
+                            to="/create-project"
                             className="bg-white text-black px-8 py-3 rounded-full text-base font-semibold hover:bg-gray-200 transition-all duration-300"
                         >
                             Start Modeling

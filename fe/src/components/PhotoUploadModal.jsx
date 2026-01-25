@@ -131,7 +131,9 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="text-4xl">📸</div>
+                <div className="flex justify-center">
+                  <Camera className="w-12 h-12 text-indigo-400" />
+                </div>
                 <p className="text-gray-200 font-medium">Drag and drop or click to upload</p>
                 <p className="text-sm text-gray-400">JPG, PNG, GIF, WebP</p>
               </div>
