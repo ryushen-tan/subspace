@@ -12,7 +12,7 @@ const Timeline = () => {
   const timelineRef = useRef(null);
 
   const handleScrub = useCallback((clientX) => {
-    if (!timelineRef.current) return;
+    if (!timelineRef.current || timelineSteps.length === 0) return;
     const rect = timelineRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
     const percentage = x / rect.width;
@@ -36,22 +36,22 @@ const Timeline = () => {
   }, []);
 
   const handleStepClick = (index) => {
+    if (timelineSteps.length === 0) return;
     scrubToStep(index);
   };
 
   const handlePrevStep = () => {
-    if (currentStepIndex > 0) {
-      scrubToStep(currentStepIndex - 1);
-    }
+    if (timelineSteps.length === 0 || currentStepIndex <= 0) return;
+    scrubToStep(currentStepIndex - 1);
   };
 
   const handleNextStep = () => {
-    if (currentStepIndex < timelineSteps.length - 1) {
-      scrubToStep(currentStepIndex + 1);
-    }
+    if (timelineSteps.length === 0 || currentStepIndex >= timelineSteps.length - 1) return;
+    scrubToStep(currentStepIndex + 1);
   };
 
   const handleEditPrompt = () => {
+    if (timelineSteps.length === 0) return;
     const currentStep = timelineSteps[currentStepIndex];
     const lastMessage = currentStep?.messages?.[currentStep.messages.length - 1];
     if (lastMessage?.role === 'user') {
@@ -81,26 +81,27 @@ const Timeline = () => {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Early return after all hooks are called
-  if (timelineSteps.length === 0) return null;
-
+  // Always show timeline, even when empty
   const progress = timelineSteps.length > 1 
     ? (currentStepIndex / (timelineSteps.length - 1)) * 100 
     : 0;
+  
+  const stepCount = timelineSteps.length || 0;
+  const currentStep = currentStepIndex + 1 || 0;
 
   return (
     <>
       <Motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="absolute bottom-6 left-[150px] right-4 bg-neutral-950/40 backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-20"
+        className="absolute bottom-6 left-[150px] right-80 bg-neutral-950/40 backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-20"
       >
         <div className="px-3 py-2 flex items-center gap-3">
           {/* Compact Controls */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={handlePrevStep}
-              disabled={currentStepIndex <= 0}
+              disabled={stepCount === 0 || currentStepIndex <= 0}
               className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer text-gray-400 hover:text-white transition-colors"
             >
               <SkipBack className="w-3 h-3" />
@@ -108,14 +109,14 @@ const Timeline = () => {
             
             <button
               onClick={handleNextStep}
-              disabled={currentStepIndex >= timelineSteps.length - 1}
+              disabled={stepCount === 0 || currentStepIndex >= timelineSteps.length - 1}
               className="p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer text-gray-400 hover:text-white transition-colors"
             >
               <SkipForward className="w-3 h-3" />
             </button>
 
             <span className="text-[10px] text-gray-500 ml-1 min-w-[60px]">
-              {currentStepIndex + 1} / {timelineSteps.length}
+              {currentStep} / {stepCount}
             </span>
           </div>
 
@@ -141,36 +142,38 @@ const Timeline = () => {
               />
 
               {/* Step Markers (subtle) */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                {timelineSteps.map((step, index) => {
-                  const position = timelineSteps.length > 1 
-                    ? (index / (timelineSteps.length - 1)) * 100 
-                    : 50;
+              {timelineSteps.length > 0 && (
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {timelineSteps.map((step, index) => {
+                    const position = timelineSteps.length > 1 
+                      ? (index / (timelineSteps.length - 1)) * 100 
+                      : 50;
 
-                  return (
-                    <div
-                      key={index}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStepClick(index);
-                      }}
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/40 rounded-full hover:scale-150 transition-transform group/marker cursor-pointer"
-                      style={{ left: `${position}%` }}
-                    >
-                      {/* Tooltip on marker hover */}
-                      <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/marker:opacity-100 transition-opacity bg-neutral-900 border border-white/20 rounded px-2 py-0.5 text-[10px] text-white whitespace-nowrap pointer-events-none">
-                        {step.name || `Step ${index + 1}`}
+                    return (
+                      <div
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStepClick(index);
+                        }}
+                        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/40 rounded-full hover:scale-150 transition-transform group/marker cursor-pointer"
+                        style={{ left: `${position}%` }}
+                      >
+                        {/* Tooltip on marker hover */}
+                        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/marker:opacity-100 transition-opacity bg-neutral-900 border border-white/20 rounded px-2 py-0.5 text-[10px] text-white whitespace-nowrap pointer-events-none">
+                          {step.name || `Step ${index + 1}`}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Current Step Name */}
           <div className="text-[10px] text-gray-400 max-w-[120px] truncate flex-shrink-0">
-            {timelineSteps[currentStepIndex]?.name || ''}
+            {timelineSteps.length > 0 && timelineSteps[currentStepIndex]?.name ? timelineSteps[currentStepIndex].name : ''}
           </div>
 
           {/* Edit Button */}

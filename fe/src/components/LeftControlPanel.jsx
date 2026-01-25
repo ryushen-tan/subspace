@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search } from 'lucide-react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
 import TransformControls from './TransformControls';
@@ -13,12 +13,18 @@ const LeftControlPanel = () => {
   const renameObject = useAgentStore((state) => state.renameObject);
   const deleteObject = useAgentStore((state) => state.deleteObject);
   const updateObjectColor = useAgentStore((state) => state.updateObjectColor);
+  const projectName = useAgentStore((state) => state.projectName);
+  const projectDescription = useAgentStore((state) => state.projectDescription);
+  const setProjectName = useAgentStore((state) => state.setProjectName);
+  const setProjectDescription = useAgentStore((state) => state.setProjectDescription);
 
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
   const [hexValues, setHexValues] = useState({});
   const [colorPickerOpen, setColorPickerOpen] = useState(null); // Track which object's color picker is open
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingProjectName, setEditingProjectName] = useState(false);
+  const [draftProjectName, setDraftProjectName] = useState(projectName);
   const colorPickerRef = useRef(null);
 
   useEffect(() => {
@@ -29,6 +35,13 @@ const LeftControlPanel = () => {
     });
     setHexValues(next);
   }, [objects]);
+
+  useEffect(() => {
+    // Sync draft project name when project name changes
+    if (!editingProjectName) {
+      setDraftProjectName(projectName);
+    }
+  }, [projectName, editingProjectName]);
 
   // Close color picker when clicking outside
   useEffect(() => {
@@ -121,7 +134,7 @@ const LeftControlPanel = () => {
     <Motion.div
       initial={{ height: 48, width: 48 }}
       animate={{ 
-        height: isOpen ? 700 : 48,
+        height: isOpen ? 720 : 48,
         width: isOpen ? 320 : 48
       }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -132,8 +145,41 @@ const LeftControlPanel = () => {
           {/* Top Bar with Toggle */}
           <div className="relative flex items-center border-b border-white/5 justify-between px-3 py-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Layers className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-              <span className="font-medium text-gray-200 text-sm truncate">Controls</span>
+              <Folder className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+              {editingProjectName ? (
+                <input
+                  autoFocus
+                  value={draftProjectName}
+                  onChange={(e) => setDraftProjectName(e.target.value)}
+                  onBlur={() => {
+                    setProjectName(draftProjectName.trim() || 'Untitled Project');
+                    setEditingProjectName(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setProjectName(draftProjectName.trim() || 'Untitled Project');
+                      setEditingProjectName(false);
+                    }
+                    if (e.key === 'Escape') {
+                      setDraftProjectName(projectName);
+                      setEditingProjectName(false);
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                />
+              ) : (
+                <span 
+                  className="font-medium text-gray-200 text-sm truncate cursor-pointer hover:text-indigo-400 transition-colors"
+                  onClick={() => {
+                    setDraftProjectName(projectName);
+                    setEditingProjectName(true);
+                  }}
+                  title="Click to edit project name"
+                >
+                  {projectName}
+                </span>
+              )}
             </div>
             <button
               onClick={togglePanel}
@@ -148,7 +194,7 @@ const LeftControlPanel = () => {
           onClick={togglePanel}
           className="w-full h-full flex items-center justify-center p-2 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
-          <Layers className="w-5 h-5" />
+          <ChevronDown className="w-5 h-5" />
         </button>
       )}
 

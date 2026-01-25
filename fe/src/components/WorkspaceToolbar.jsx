@@ -68,7 +68,7 @@ const WorkspaceToolbar = ({ onPreviewClick, onRotateClick }) => {
         onChange={handleFileChange}
         className="hidden"
       />
-      <div className="bg-neutral-950/95 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2 z-10 flex items-center gap-2 shadow-2xl">
+      <div className="bg-neutral-950/95 h-[70px] backdrop-blur-md border border-white/10 rounded-r-xl px-4 py-2 z-10 flex items-center gap-2 shadow-2xl">
         {tools.map((tool) => {
           const Icon = tool.icon;
           const isPreview = tool.id === 'preview';

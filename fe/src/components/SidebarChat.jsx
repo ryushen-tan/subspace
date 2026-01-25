@@ -206,7 +206,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           {/* Chat Section */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Scrollable Messages */}
-        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3">
+        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 custom-scrollbar">
           {/* Messages */}
           <AnimatePresence>
             {messages.length === 0 && todo.length === 0 ? (
@@ -277,7 +277,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
         {todo.length > 0 && (
           <div className="px-4 py-2 border-t border-white/5 bg-neutral-900/50">
             <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-2">Tasks</p>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
+            <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
               {todo.map((task, i) => (
                 <div key={i} className={`flex items-start gap-2 text-sm ${task.done ? 'text-gray-500' : 'text-gray-300'}`}>
                   {task.done ? (
@@ -349,7 +349,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
-                  className="absolute bottom-full left-0 right-0 mb-2 bg-neutral-900 border border-white/10 rounded-xl overflow-hidden shadow-xl max-h-48 overflow-y-auto"
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-neutral-900 border border-white/10 rounded-xl overflow-hidden shadow-xl max-h-48 overflow-y-auto custom-scrollbar"
                 >
                   {filteredMentions.map((obj, i) => (
                     <div

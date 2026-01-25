@@ -1,4 +1,4 @@
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, TransformControls } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
@@ -7,7 +7,7 @@ import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
-import WorkspaceBottomBar from '../components/WorkspaceBottomBar';
+import WorkspaceBottomBar from '../components/WorkspaceTopBar';
 
 function MeshSurface({ mesh, pointOverrides, color, isActive, onSelect }) {
   const geometry = useMemo(() => buildMeshGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
@@ -82,6 +82,51 @@ function IdleCamera({ controlsRef, isIdle }) {
   return null;
 }
 
+function CameraTracker() {
+  const { camera } = useThree();
+  const [position, setPosition] = useState({ x: 0, y: 0, z: 0 });
+  const [zoom, setZoom] = useState(100);
+  
+  useFrame(() => {
+    if (camera) {
+      setPosition({
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z,
+      });
+      
+      // Calculate zoom based on camera distance from target (origin)
+      // Default camera position is [5, 5, 5], distance from origin = sqrt(75) ≈ 8.66
+      const target = new THREE.Vector3(0, 0, 0);
+      const distance = camera.position.distanceTo(target);
+      
+      // Base distance (initial camera position [5,5,5] = ~8.66)
+      const baseDistance = 8.66;
+      // Calculate zoom percentage: closer = higher %, farther = lower %
+      const zoomPercent = (baseDistance / distance) * 100;
+      setZoom(Math.max(25, Math.min(500, zoomPercent))); // Clamp between 25% and 500%
+    }
+  });
+  
+  // Store position in a ref that CoordinateDisplay can access
+  // We'll use a custom event or context for this
+  useEffect(() => {
+    const event = new CustomEvent('cameraPositionUpdate', { 
+      detail: position 
+    });
+    window.dispatchEvent(event);
+  }, [position]);
+  
+  useEffect(() => {
+    const event = new CustomEvent('cameraZoomUpdate', { 
+      detail: zoom 
+    });
+    window.dispatchEvent(event);
+  }, [zoom]);
+  
+  return null;
+}
+
 export function Scene({ isSidebarOpen, onPreviewClick }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
@@ -97,6 +142,46 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   const idleTimerRef = useRef(null);
   const activeHandleRef = useRef(new THREE.Object3D());
   const lastHandlePosRef = useRef(new THREE.Vector3());
+  
+  // Zoom control handler
+  useEffect(() => {
+    const handleZoomControl = (event) => {
+      if (!controlsRef.current) return;
+      const controls = controlsRef.current;
+      const direction = event.detail; // 'in' or 'out'
+      
+      // Get current camera and target
+      const camera = controls.object;
+      const target = controls.target;
+      
+      // Calculate current distance
+      const distance = camera.position.distanceTo(target);
+      
+      // Zoom factor (10% change per click)
+      const zoomFactor = direction === 'in' ? 0.9 : 1.1;
+      const newDistance = distance * zoomFactor;
+      
+      // Clamp to min/max distances
+      const clampedDistance = Math.max(2, Math.min(50, newDistance));
+      
+      // Calculate direction vector from target to camera
+      const directionVector = new THREE.Vector3()
+        .subVectors(camera.position, target)
+        .normalize();
+      
+      // Set new camera position
+      camera.position.copy(
+        target.clone().add(directionVector.multiplyScalar(clampedDistance))
+      );
+      
+      controls.update();
+    };
+    
+    window.addEventListener('zoomControl', handleZoomControl);
+    return () => {
+      window.removeEventListener('zoomControl', handleZoomControl);
+    };
+  }, []);
   
   const pointOverrides = useMemo(() => {
     const map = new Map();
@@ -332,6 +417,9 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />
+      
+      {/* Camera Position Tracker */}
+      <CameraTracker />
     </Canvas>
     <WorkspaceBottomBar 
       onPreviewClick={onPreviewClick} 

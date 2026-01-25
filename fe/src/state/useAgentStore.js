@@ -151,6 +151,14 @@ export const useAgentStore = create((set, get) => ({
   finalized: false,
   lastProcessedMeshSignature: null,
   
+  // Project info
+  projectName: 'Untitled Project',
+  projectDescription: '',
+  projectCreatedAt: Date.now(),
+  
+  setProjectName: (name) => set({ projectName: name || 'Untitled Project' }),
+  setProjectDescription: (description) => set({ projectDescription: description || '' }),
+  
   // Timeline state
   timelineSteps: [],
   currentStepIndex: -1,

@@ -4,6 +4,8 @@ import SidebarChat from '../components/SidebarChat';
 import LeftControlPanel from '../components/LeftControlPanel';
 import Timeline from '../components/Timeline';
 import PreviewModal from '../components/PreviewModal';
+import CoordinateDisplay from '../components/CoordinateDisplay';
+import ZoomDisplay from '../components/ZoomDisplay';
 import { useAgentStore } from '../state/useAgentStore';
 
 const Editor = () => {
@@ -36,6 +38,8 @@ const Editor = () => {
       <Scene isSidebarOpen={isSidebarOpen} onPreviewClick={() => setIsPreviewOpen(true)} />
       <SidebarChat isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <Timeline />
+      <CoordinateDisplay />
+      <ZoomDisplay />
       <PreviewModal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} />
     </div>
   );
