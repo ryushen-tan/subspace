@@ -6,11 +6,13 @@ import Timeline from '../components/Timeline';
 import PreviewModal from '../components/PreviewModal';
 import CoordinateDisplay from '../components/CoordinateDisplay';
 import ZoomDisplay from '../components/ZoomDisplay';
+import TutorialModal from '../components/TutorialModal';
 import { useAgentStore } from '../state/useAgentStore';
 
 const Editor = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(true);
 
   const undo = useAgentStore((s) => s.undo);
   const redo = useAgentStore((s) => s.redo);
@@ -32,6 +34,10 @@ const Editor = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo]);
 
+  const handleTutorialClose = () => {
+    setIsTutorialOpen(false);
+  };
+
   return (
     <div className="relative w-screen h-screen m-0 p-0 overflow-hidden bg-[#0a0a0a]">
       <LeftControlPanel />
@@ -41,6 +47,7 @@ const Editor = () => {
       <CoordinateDisplay />
       <ZoomDisplay />
       <PreviewModal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} />
+      <TutorialModal isOpen={isTutorialOpen} onClose={handleTutorialClose} />
     </div>
   );
 }
