@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Scene } from '../scene/Scene';
 import SidebarChat from '../components/SidebarChat';
 import LeftControlPanel from '../components/LeftControlPanel';
+import Timeline from '../components/Timeline';
 
 const Editor = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -11,6 +12,7 @@ const Editor = () => {
       <LeftControlPanel />
       <Scene isSidebarOpen={isSidebarOpen} />
       <SidebarChat isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <Timeline />
     </div>
   );
 }
