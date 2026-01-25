@@ -73,6 +73,12 @@ def step_to_mesh(step_path, source_name: str | None = None, simplify: bool = Tru
             new_face = [str(index_map[idx]) for idx in f]
             faces.append(new_face)
         
+        # Shift to ground plane: move all vertices so min Y = 0
+        if vertices:
+            min_y = min(v["p"][1] for v in vertices)
+            for v in vertices:
+                v["p"][1] -= min_y
+        
         # Add source to vertices
         if source_name:
             for v in vertices:
