@@ -16,6 +16,7 @@ const LeftControlPanel = () => {
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
   const [hexValues, setHexValues] = useState({});
+  const [colorPickerOpen, setColorPickerOpen] = useState(null); // Track which object's color picker is open
 
   useEffect(() => {
     // Sync local hex cache when objects list changes
@@ -221,13 +222,25 @@ const LeftControlPanel = () => {
               return (
                 <div
                   key={object.id}
-                  className={`p-3 bg-neutral-900/50 border rounded-lg transition-colors space-y-2 cursor-pointer ${
+                  className={`p-3 bg-neutral-900/50 border rounded-lg transition-colors cursor-pointer ${
                     object.id === activeObjectId ? 'border-indigo-500/60 bg-neutral-900' : 'border-white/5 hover:bg-neutral-900'
                   }`}
                   onClick={() => setActiveObject(object.id)}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {/* Color square */}
+                      <button
+                        className="w-6 h-6 rounded border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer flex-shrink-0"
+                        style={{ background: color }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setColorPickerOpen(colorPickerOpen === object.id ? null : object.id);
+                        }}
+                        aria-label="Pick color"
+                        title="Pick color"
+                      />
+                      
                       {editingId === object.id ? (
                         <input
                           autoFocus
@@ -247,6 +260,7 @@ const LeftControlPanel = () => {
                               setDraftName(object.name);
                             }
                           }}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
                         />
                       ) : (
@@ -256,7 +270,8 @@ const LeftControlPanel = () => {
                     <div className="flex items-center gap-1">
                       <button
                         className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors cursor-pointer"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingId(object.id);
                           setDraftName(object.name);
                         }}
@@ -266,14 +281,20 @@ const LeftControlPanel = () => {
                       </button>
                       <button
                         className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-red-400 transition-colors cursor-pointer"
-                        onClick={() => deleteObject(object.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteObject(object.id);
+                        }}
                         aria-label="Delete object"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                       <button
                         className="p-1 hover:bg-white/10 rounded text-gray-500 hover:text-gray-200 transition-colors cursor-pointer"
-                        onClick={() => toggleObjectVisibility(object.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleObjectVisibility(object.id);
+                        }}
                         aria-label={object.visible ? 'Hide object' : 'Show object'}
                       >
                         {object.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -281,38 +302,54 @@ const LeftControlPanel = () => {
                     </div>
                   </div>
 
-                  {/* Color picker */}
-                  <div className="space-y-2">
-                    <div
-                      className="relative h-20 rounded-md cursor-crosshair overflow-hidden border border-white/10"
-                      onMouseDown={(e) => handleColorDrag(e, object)}
-                      onMouseMove={(e) => { if (e.buttons === 1) handleColorDrag(e, object); }}
-                      style={{
-                        background: 'linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)',
-                      }}
-                    >
-                      <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.5), rgba(0,0,0,0))' }} />
+                  {/* Color picker popup */}
+                  {colorPickerOpen === object.id && (
+                    <div className="mt-2 p-3 bg-neutral-800/95 border border-white/20 rounded-lg space-y-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-400">Color Picker</span>
+                        <button
+                          className="text-gray-400 hover:text-white text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setColorPickerOpen(null);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
                       <div
-                        className="absolute w-3 h-3 border border-white rounded-sm shadow"
-                        style={{ left: markerX, top: markerY, transform: 'translate(-50%, -50%)', background: color }}
-                        aria-hidden
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded border border-white/10" style={{ background: color }} />
-                      <input
-                        type="text"
-                        value={hexValues[object.id] || color}
-                        onChange={(e) => setHexValues((prev) => ({ ...prev, [object.id]: e.target.value }))}
-                        onBlur={(e) => handleHexInput(e.target.value, object)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleHexInput(e.currentTarget.value, object);
+                        className="relative h-32 rounded-md cursor-crosshair overflow-hidden border border-white/10"
+                        onMouseDown={(e) => handleColorDrag(e, object)}
+                        onMouseMove={(e) => { if (e.buttons === 1) handleColorDrag(e, object); }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          background: 'linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)',
                         }}
-                        className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-indigo-500/50"
-                        placeholder="#4F46E5"
-                      />
+                      >
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.5), rgba(0,0,0,0))' }} />
+                        <div
+                          className="absolute w-4 h-4 border-2 border-white rounded-full shadow-lg"
+                          style={{ left: markerX, top: markerY, transform: 'translate(-50%, -50%)', background: color }}
+                          aria-hidden
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded border border-white/10 flex-shrink-0" style={{ background: color }} />
+                        <input
+                          type="text"
+                          value={hexValues[object.id] || color}
+                          onChange={(e) => setHexValues((prev) => ({ ...prev, [object.id]: e.target.value }))}
+                          onBlur={(e) => handleHexInput(e.target.value, object)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleHexInput(e.currentTarget.value, object);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 bg-neutral-900 border border-white/10 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-indigo-500/50 font-mono"
+                          placeholder="#4F46E5"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })}
