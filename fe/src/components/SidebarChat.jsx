@@ -81,7 +81,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       initial={{ width: 320 }}
       animate={{ width: isOpen ? 320 : 64 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="absolute top-4 right-4 bottom-4 bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl"
+      className="absolute top-4 right-4 h-[80vh] bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl"
     >
       {/* Top Bar with Controls Overlay */}
       <div className={`relative flex items-center border-b border-white/5 ${isOpen ? 'justify-between px-3 py-2.5' : 'justify-center p-2'}`}>
