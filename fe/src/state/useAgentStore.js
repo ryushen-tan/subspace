@@ -137,6 +137,27 @@ export const useAgentStore = create((set, get) => ({
     return createdId;
   },
 
+  renameObject: (objectId, name) =>
+    set((state) => ({
+      objects: state.objects.map((obj) =>
+        obj.id === objectId ? { ...obj, name: name || obj.name } : obj
+      ),
+    })),
+
+  deleteObject: (objectId) =>
+    set((state) => {
+      const remaining = state.objects.filter((obj) => obj.id !== objectId);
+      usePointsStore.getState().clearPointsForObject(objectId);
+      usePointsStore.getState().clearSelectionForObject(objectId);
+
+      const fallback = remaining[remaining.length - 1];
+      return {
+        objects: remaining,
+        activeObjectId: fallback?.id || null,
+        mesh: fallback?.mesh || null,
+      };
+    }),
+
   toggleObjectVisibility: (objectId) =>
     set((state) => {
       const updated = state.objects.map((obj) =>
