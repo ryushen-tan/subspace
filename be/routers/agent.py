@@ -10,6 +10,8 @@ from ai.agent import AgentRunner
 from services.mesh_service import MeshService
 from services.step_analyzer import analyze_step_file
 from models.mesh import Mesh
+from services.preview_generator import generate_preview_image
+from fastapi.responses import Response
 
 logger = logging.getLogger(__name__)
 
@@ -322,3 +324,76 @@ async def agent_ws(websocket: WebSocket):
             await websocket.send_json({"type": "error", "message": "Unknown message type"})
     except WebSocketDisconnect:
         return
+
+
+@router.post("/upload-stl")
+async def upload_stl(file: UploadFile = File(...), session_id: str | None = None):
+    if not file.filename.endswith('.stl'):
+        raise HTTPException(status_code=400, detail="Only .stl files are allowed")
+
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, file.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    try:
+        # Get the absolute path to the converter script
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        converter_path = os.path.join(base_dir, "utils", "stl_converter.py")
+        
+        # Run the converter script
+        result = subprocess.run(
+            ["python3", converter_path, file_path],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"Conversion failed: {result.stderr}")
+        
+        mesh_data = json.loads(result.stdout)
+        if "error" in mesh_data:
+            raise HTTPException(status_code=500, detail=mesh_data["error"])
+        
+        if session_id:
+            session = agent_runner.get_session(session_id)
+            if session:
+                session.state.mesh = Mesh(**mesh_data)
+                # Notify agent about the uploaded mesh
+                agent_runner.notify_mesh_uploaded(session_id, file_type="STL", filename=file.filename)
+        
+        return mesh_data
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+
+class PreviewRequest(BaseModel):
+    background_path: str
+    mesh: dict
+    session_id: str | None = None
+
+
+@router.post("/generate-preview")
+async def generate_preview(request: PreviewRequest):
+    """
+    Generate a preview image by combining a 3D model with a background.
+    """
+    try:
+        # Convert mesh dict to Mesh model
+        mesh = Mesh(**request.mesh)
+        
+        # Generate preview
+        preview_bytes = generate_preview_image(
+            background_path=request.background_path,
+            mesh_data=request.mesh,
+            session_id=request.session_id
+        )
+        
+        return Response(content=preview_bytes, media_type="image/png")
+        
+    except Exception as e:
+        logger.error(f"Error generating preview: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to generate preview: {str(e)}")

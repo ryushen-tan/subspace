@@ -58,6 +58,7 @@ def read_stl_binary(filepath):
         # Read triangle count
         triangle_count = np.frombuffer(f.read(4), dtype=np.uint32)[0]
         
+        
         vertices = []
         faces = []
         vertex_map = {}
@@ -152,9 +153,13 @@ def stl_to_mesh(stl_path, source_name: str | None = None, simplify: bool = True,
             return {"error": "No vertices found in STL file"}
         
         # Calculate bounding box for scaling
+        # Apply rotation: (x, y, z) -> (x, z, -y) to stand upright and face correct direction
+        # This converts from Z-up to Y-up coordinate system
         coords = np.array([v["p"] for v in vertices])
-        min_coords = coords.min(axis=0)
-        max_coords = coords.max(axis=0)
+        # Rotate coordinates: (x, y, z) -> (x, z, -y)
+        rotated_coords = np.array([[c[0], c[2], -c[1]] for c in coords])
+        min_coords = rotated_coords.min(axis=0)
+        max_coords = rotated_coords.max(axis=0)
         
         center = (min_coords + max_coords) / 2
         dims = max_coords - min_coords
@@ -166,11 +171,14 @@ def stl_to_mesh(stl_path, source_name: str | None = None, simplify: bool = True,
         if max_dim > 0:
             scale_factor = target_size / max_dim
         
-        # Apply scaling and centering
+        # Apply scaling and centering (rotation already applied to coords above)
         scaled_vertices = []
         for v in vertices:
             p = np.array(v["p"])
-            scaled_p = (p - center) * scale_factor
+            # Apply rotation: (x, y, z) -> (x, z, -y)
+            x, y, z = p[0], p[1], p[2]
+            rotated_p = np.array([x, z, -y])
+            scaled_p = (rotated_p - center) * scale_factor
             v["p"] = [float(x) for x in scaled_p]
             if source_name:
                 v["source"] = source_name

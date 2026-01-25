@@ -29,7 +29,7 @@ function MeshEdges({ mesh, pointOverrides }) {
   );
 }
 
-export function Scene({ isSidebarOpen }) {
+export function Scene({ isSidebarOpen, onPreviewClick }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
@@ -74,12 +74,12 @@ export function Scene({ isSidebarOpen }) {
 
       {/* Grid Helper */}
       <Grid
-        args={[20, 20]}
+        args={[50, 50]}
         cellColor="#6f6f6f"
         sectionColor="#9d4b4b"
         cellThickness={0.5}
         sectionThickness={1}
-        fadeDistance={25}
+        fadeDistance={60}
         fadeStrength={1}
       />
 
@@ -114,7 +114,7 @@ export function Scene({ isSidebarOpen }) {
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />
     </Canvas>
-    <WorkspaceBottomBar />
+    <WorkspaceBottomBar onPreviewClick={onPreviewClick} />
     </div>
   );
 }

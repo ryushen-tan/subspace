@@ -1,7 +1,7 @@
 import React from 'react';
-import { RotateCw, Plus, Ruler, Move, Upload, Download } from 'lucide-react';
+import { RotateCw, Plus, Ruler, Move, Upload, Download, Eye } from 'lucide-react';
 
-const WorkspaceToolbar = () => {
+const WorkspaceToolbar = ({ onPreviewClick }) => {
   const tools = [
     { id: 'rotate', icon: RotateCw, label: 'rotate tool' },
     { id: 'add-vector', icon: Plus, label: 'add vector' },
@@ -9,6 +9,7 @@ const WorkspaceToolbar = () => {
     { id: 'move', icon: Move, label: 'move tool' },
     { id: 'export', icon: Download, label: 'export' },
     { id: 'import', icon: Upload, label: 'import' },
+    { id: 'preview', icon: Eye, label: 'preview', onClick: onPreviewClick, highlight: true },
   ];
 
   return (
@@ -18,7 +19,12 @@ const WorkspaceToolbar = () => {
         return (
           <button
             key={tool.id}
-            className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-gray-200 transition-colors group relative"
+            onClick={tool.onClick || undefined}
+            className={`p-2 rounded-lg transition-colors group relative ${
+              tool.highlight
+                ? 'bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 hover:text-indigo-300'
+                : 'hover:bg-white/10 text-gray-400 hover:text-gray-200'
+            }`}
             title={tool.label}
           >
             <Icon className="w-5 h-5" />

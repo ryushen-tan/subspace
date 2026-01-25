@@ -49,16 +49,21 @@ def step_to_mesh(step_path, source_name: str | None = None, simplify: bool = Tru
                 (v.z - center_z) * scale_factor
             )
             
+            # Apply rotation: rotate 90 degrees around X axis (swap Y and Z) to fix models laying flat
+            # This converts from Z-up to Y-up coordinate system: (x, y, z) -> (x, z, -y)
+            x, y, z = scaled_p[0], scaled_p[1], scaled_p[2]
+            rotated_p = (x, z, -y)
+            
             # Use rounded coordinates as key for deduplication
             # 6 decimal places should be enough for CAD data
-            key = (round(scaled_p[0], 6), round(scaled_p[1], 6), round(scaled_p[2], 6))
+            key = (round(rotated_p[0], 6), round(rotated_p[1], 6), round(rotated_p[2], 6))
             
             if key not in unique_points:
                 new_idx = len(vertices)
                 unique_points[key] = new_idx
                 vertices.append({
                     "id": str(new_idx),
-                    "p": [scaled_p[0], scaled_p[1], scaled_p[2]]
+                    "p": [rotated_p[0], rotated_p[1], rotated_p[2]]
                 })
             
             index_map[i] = unique_points[key]
