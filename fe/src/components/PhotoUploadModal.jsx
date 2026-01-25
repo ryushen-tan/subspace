@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { agentApi } from '../services/agentApi';
+import { Camera, X } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
-import './PhotoUploadModal.css';
 
 export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -38,6 +37,9 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
 
     try {
       await uploadPhotoFile(selectedFile, paperSize);
+      setSelectedFile(null);
+      setPreview(null);
+      setPaperSize('letter');
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to upload image');
@@ -64,56 +66,74 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="photo-upload-modal-overlay" onClick={onClose}>
-      <div className="photo-upload-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="photo-upload-header">
-          <h2>Convert Photo to 3D Model</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-[95vw] max-w-xl bg-neutral-950 border border-white/10 rounded-xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <Camera className="w-5 h-5 text-indigo-400" />
+            <h2 className="text-xl font-semibold text-white">Photo to 3D Model</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="photo-upload-body">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          
           {/* Paper Size Selection */}
-          <div className="paper-size-section">
-            <label className="section-label">Paper Size:</label>
-            <div className="paper-size-options">
-              <label className="radio-option">
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-200">Paper Size</label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors">
                 <input
                   type="radio"
                   value="letter"
                   checked={paperSize === 'letter'}
                   onChange={(e) => setPaperSize(e.target.value)}
+                  className="w-4 h-4 accent-indigo-500"
                 />
-                <span>US Letter (8.5" × 11")</span>
+                <span className="text-gray-300">US Letter (8.5" × 11")</span>
               </label>
-              <label className="radio-option">
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors">
                 <input
                   type="radio"
                   value="a4"
                   checked={paperSize === 'a4'}
                   onChange={(e) => setPaperSize(e.target.value)}
+                  className="w-4 h-4 accent-indigo-500"
                 />
-                <span>A4 (210mm × 297mm)</span>
+                <span className="text-gray-300">A4 (210mm × 297mm)</span>
               </label>
             </div>
           </div>
 
           {/* File Upload Area */}
           <div
-            className={`upload-area ${selectedFile ? 'has-file' : ''}`}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+              selectedFile
+                ? 'border-indigo-500/50 bg-indigo-500/5'
+                : 'border-white/20 bg-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10'
+            }`}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
             {preview ? (
-              <div className="preview-container">
-                <img src={preview} alt="Preview" className="preview-image" />
-                <p className="preview-filename">{selectedFile.name}</p>
+              <div className="space-y-3">
+                <img src={preview} alt="Preview" className="max-w-full max-h-64 mx-auto rounded-lg" />
+                <p className="text-xs text-gray-400">{selectedFile.name}</p>
               </div>
             ) : (
-              <div className="upload-placeholder">
-                <div className="upload-icon">📸</div>
-                <p className="upload-text">Drag and drop an image here</p>
-                <p className="upload-subtext">or click to browse</p>
+              <div className="space-y-3">
+                <div className="text-4xl">📸</div>
+                <p className="text-gray-200 font-medium">Drag and drop or click to upload</p>
+                <p className="text-sm text-gray-400">JPG, PNG, GIF, WebP</p>
               </div>
             )}
             <input
@@ -121,45 +141,52 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
               type="file"
               accept="image/*"
               onChange={handleFileSelect}
-              style={{ display: 'none' }}
+              className="hidden"
             />
           </div>
 
           {/* Instructions */}
-          <div className="instructions">
-            <h4>Instructions:</h4>
-            <ul>
-              <li>Place your object on a piece of paper</li>
-              <li>Take a clear, well-lit photo from above</li>
-              <li>Make sure the entire paper is visible in the frame</li>
-              <li>The AI will use the paper size to determine object dimensions</li>
+          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-4 space-y-2">
+            <p className="text-sm font-semibold text-indigo-300">Instructions:</p>
+            <ul className="text-xs text-gray-300 space-y-1">
+              <li>• Place your object on the paper</li>
+              <li>• Take a clear, well-lit photo from above</li>
+              <li>• Ensure the entire paper is visible</li>
+              <li>• Paper size is used to determine object dimensions</li>
             </ul>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="error-message">
-              <span>⚠️</span>
-              <p>{error}</p>
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex gap-3">
+              <span className="text-red-400 text-lg">⚠️</span>
+              <p className="text-sm text-red-300">{error}</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="photo-upload-footer">
+        <div className="flex items-center gap-3 p-6 border-t border-white/10 bg-neutral-900/50">
           <button
-            className="btn btn-secondary"
             onClick={onClose}
             disabled={isLoading}
+            className="px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
-            className="btn btn-primary"
             onClick={handleUpload}
             disabled={!selectedFile || isLoading}
+            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Processing...' : 'Upload & Generate'}
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              'Upload & Generate'
+            )}
           </button>
         </div>
       </div>
