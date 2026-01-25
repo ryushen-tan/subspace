@@ -798,3 +798,5 @@ pip-selfcheck.json
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 
 # End of https://www.toptal.com/developers/gitignore/api/node,nextjs,react,intellij,webstorm,pycharm,pycharm+all,venv,visualstudiocode
+*.db-shm
+*.db-wal
