@@ -55,6 +55,44 @@ const meshSignature = (mesh) => {
   }
 };
 
+const extractNewGeometry = (allObjects, incomingMesh) => {
+  if (!incomingMesh?.vertices?.length) return null;
+
+  // Build position set from ALL existing objects
+  const existingPositions = new Set();
+  allObjects.forEach((obj) => {
+    (obj.mesh?.vertices || []).forEach((v) => {
+      const key = `${v.p[0].toFixed(6)},${v.p[1].toFixed(6)},${v.p[2].toFixed(6)}`;
+      existingPositions.add(key);
+    });
+  });
+
+  // Keep only vertices with positions not yet seen
+  const newVerts = (incomingMesh.vertices || []).filter((v) => {
+    const key = `${v.p[0].toFixed(6)},${v.p[1].toFixed(6)},${v.p[2].toFixed(6)}`;
+    return !existingPositions.has(key);
+  });
+
+  if (newVerts.length === 0) return null;
+
+  const newIds = new Set(newVerts.map((v) => String(v.id)));
+  const newEdges = (incomingMesh.edges || []).filter(
+    (e) => newIds.has(String(e[0])) && newIds.has(String(e[1]))
+  );
+  const newFaces = (incomingMesh.faces || []).filter((f) =>
+    f.every((vid) => newIds.has(String(vid)))
+  );
+
+  return {
+    vertices: newVerts,
+    edges: newEdges,
+    faces: newFaces,
+    loops: null,
+    stitch: null,
+    scale_factor: incomingMesh.scale_factor || 1,
+  };
+};
+
 const extractDeltaMesh = (prev, next) => {
   if (!prev || !next) return next;
   const prevIds = new Set((prev.vertices || []).map((v) => String(v.id)));
@@ -109,22 +147,10 @@ export const useAgentStore = create((set, get) => ({
       return existing.id;
     }
 
-    // If new mesh has no unseen vertices AND no moved vertices relative to any existing object, treat as already represented
-    const incomingVerts = mesh.vertices || [];
-    const knownVerts = state.objects.flatMap((obj) => obj.mesh?.vertices || []);
-    const knownIdToPos = new Map(knownVerts.map((v) => [String(v.id), v.p]));
-
-    const incomingIds = incomingVerts.map((v) => String(v.id));
-    const newIds = incomingIds.filter((id) => !knownIdToPos.has(id));
-
-    const movedIds = incomingVerts.filter((v) => {
-      const known = knownIdToPos.get(String(v.id));
-      if (!known) return false;
-      return known[0] !== v.p[0] || known[1] !== v.p[1] || known[2] !== v.p[2];
-    });
-
-    if (newIds.length === 0 && movedIds.length === 0) {
-      // No new or moved geometry; focus last object and bail
+    // Extract only geometry not present in ANY existing object (position-based)
+    const finalMesh = extractNewGeometry(state.objects, mesh);
+    if (!finalMesh) {
+      // No new geometry; focus last object and bail
       const last = state.objects[state.objects.length - 1];
       if (last) {
         set((s) => ({
@@ -137,10 +163,6 @@ export const useAgentStore = create((set, get) => ({
       return null;
     }
 
-    // If previous layer exists and new mesh contains prior geometry plus additions, isolate only the new geometry
-    const prev = state.objects[state.objects.length - 1]?.mesh;
-    const maybeDelta = extractDeltaMesh(prev, mesh);
-    const finalMesh = maybeDelta || mesh;
     const finalSig = meshSignature(finalMesh);
 
     let createdId = null;
@@ -201,8 +223,7 @@ export const useAgentStore = create((set, get) => ({
           String(v.id) === String(vertexId) ? { ...v, p: position } : v
         );
         const updatedMesh = { ...obj.mesh, vertices: updatedVerts };
-        const updatedSignature = meshSignature(updatedMesh);
-        return { ...obj, mesh: updatedMesh, signature: updatedSignature };
+        return { ...obj, mesh: updatedMesh };
       });
 
       const active = nextObjects.find((o) => o.id === state.activeObjectId) || nextObjects[nextObjects.length - 1] || null;
