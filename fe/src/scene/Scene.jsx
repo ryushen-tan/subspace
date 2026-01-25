@@ -1,9 +1,9 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
 import { useAgentStore } from '../state/useAgentStore';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
@@ -29,18 +29,97 @@ function MeshEdges({ mesh, pointOverrides }) {
   );
 }
 
+function IdleCamera({ controlsRef, isIdle }) {
+  const startAngleRef = useRef(0);
+  const idleTimeRef = useRef(0);
+  const radiusRef = useRef(0);
+  const initializedRef = useRef(false);
+
+  useFrame((state, delta) => {
+    if (!controlsRef.current) return;
+
+    if (isIdle) {
+      if (!initializedRef.current) {
+        // Store initial orbit position
+        const controls = controlsRef.current;
+        const camera = state.camera;
+        const target = controls.target;
+        
+        // Calculate current angle and radius
+        const dx = camera.position.x - target.x;
+        const dz = camera.position.z - target.z;
+        startAngleRef.current = Math.atan2(dz, dx);
+        radiusRef.current = Math.sqrt(dx * dx + dz * dz);
+        idleTimeRef.current = 0;
+        initializedRef.current = true;
+      }
+
+      // Smoothly rotate camera around the target
+      idleTimeRef.current += delta;
+      const angle = startAngleRef.current + idleTimeRef.current * 0.3; // 0.3 radians per second
+      const radius = radiusRef.current;
+      
+      const controls = controlsRef.current;
+      const target = controls.target;
+      
+      state.camera.position.x = target.x + Math.cos(angle) * radius;
+      state.camera.position.z = target.z + Math.sin(angle) * radius;
+      state.camera.lookAt(target);
+      controls.update();
+    } else {
+      initializedRef.current = false;
+    }
+  });
+
+  return null;
+}
+
 export function Scene({ isSidebarOpen }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
   const points = usePointsStore((state) => state.points);
   const objects = useAgentStore((state) => state.objects);
+  const [isIdle, setIsIdle] = useState(false);
+  const idleTimerRef = useRef(null);
   
   const pointOverrides = useMemo(() => {
     const map = new Map();
     points.forEach(p => map.set(p.id, p.position));
     return map;
   }, [points]);
+
+  // Idle detection - 1 minute (60000ms)
+  const resetIdleTimer = () => {
+    setIsIdle(false);
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+    }
+    idleTimerRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, 60000); // 1 minute
+  };
+
+  useEffect(() => {
+    // Track user interactions
+    const events = ['mousedown', 'mousemove', 'keydown', 'wheel', 'touchstart'];
+    
+    events.forEach(event => {
+      window.addEventListener(event, resetIdleTimer);
+    });
+
+    // Start initial timer
+    resetIdleTimer();
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+      }
+    };
+  }, []);
   
   return (
     <div className="absolute top-0 left-64 right-0 bottom-0">
@@ -89,7 +168,7 @@ export function Scene({ isSidebarOpen }) {
         ref={controlsRef}
         enablePan={!isDragging}
         enableZoom={!isDragging}
-        enableRotate={!isDragging}
+        enableRotate={!isDragging && !isIdle}
         minDistance={2}
         maxDistance={50}
         mouseButtons={{
@@ -99,6 +178,9 @@ export function Scene({ isSidebarOpen }) {
         }}
         screenSpacePanning={true}
       />
+
+      {/* Idle Camera Animation */}
+      <IdleCamera controlsRef={controlsRef} isIdle={isIdle} />
 
       {/* Point Cloud */}
       <PointCloud />
