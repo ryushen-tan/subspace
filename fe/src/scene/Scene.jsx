@@ -82,7 +82,7 @@ function IdleCamera({ controlsRef, isIdle }) {
   return null;
 }
 
-export function Scene({ isSidebarOpen, onPreviewClick }) {
+export function Scene({ isSidebarOpen, onPreviewClick, onPhotoClick }) {
   const controlsRef = useRef();
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
@@ -336,6 +336,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     <WorkspaceBottomBar 
       onPreviewClick={onPreviewClick} 
       onRotateClick={startManualIdle}
+      onPhotoClick={onPhotoClick}
     />
     </div>
   );

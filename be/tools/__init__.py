@@ -7,3 +7,4 @@ from .render import RenderPreviewTool
 from .finalize import FinalizeTool
 from .finish_task import FinishTaskTool
 from .inspect import InspectMeshTool
+from .photo import PhotoTo3DTool

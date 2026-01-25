@@ -4,7 +4,7 @@ import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
 import TransformControls from './TransformControls';
 
-const LeftControlPanel = () => {
+const LeftControlPanel = ({ onPhotoClick }) => {
   const Motion = motion;
   const objects = useAgentStore((state) => state.objects);
   const activeObjectId = useAgentStore((state) => state.activeObjectId);

@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
-import { RotateCw, Plus, Ruler, Move, Upload, Download, Eye } from 'lucide-react';
+import { RotateCw, Plus, Ruler, Move, Upload, Download, Eye, Camera } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 
-const WorkspaceToolbar = ({ onPreviewClick, onRotateClick }) => {
+const WorkspaceToolbar = ({ onPreviewClick, onRotateClick, onPhotoClick }) => {
   const uploadStepFile = useAgentStore((state) => state.uploadStepFile);
   const uploadStlFile = useAgentStore((state) => state.uploadStlFile);
   const sessionId = useAgentStore((state) => state.sessionId);
@@ -56,6 +56,7 @@ const WorkspaceToolbar = ({ onPreviewClick, onRotateClick }) => {
     { id: 'move', icon: Move, label: 'move tool' },
     { id: 'export', icon: Download, label: 'Export OBJ', onClick: handleExport },
     { id: 'import', icon: Upload, label: 'Import STEP/STL', onClick: handleUploadClick },
+    { id: 'photo', icon: Camera, label: 'Photo to 3D', onClick: onPhotoClick },
     { id: 'preview', icon: Eye, label: 'preview', onClick: onPreviewClick, highlight: true },
   ];
 

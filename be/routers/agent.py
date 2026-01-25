@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Query
 from pydantic import BaseModel
 from typing import Any
 import json
@@ -9,6 +9,7 @@ import logging
 from ai.agent import AgentRunner
 from services.mesh_service import MeshService
 from services.step_analyzer import analyze_step_file
+from services.photo_to_3d import PhotoTo3DService
 from models.mesh import Mesh
 from services.preview_generator import generate_preview_image
 from fastapi.responses import Response
@@ -140,6 +141,80 @@ async def upload_stl(file: UploadFile = File(...), session_id: str | None = None
                 agent_runner.notify_mesh_uploaded(session_id, file_type="STL", filename=file.filename, summary=summary_text)
         
         return mesh_data
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+
+@router.post("/upload-photo")
+async def upload_photo(
+    file: UploadFile = File(...),
+    paper_size: str = Query("letter", description="Paper size: 'letter' or 'a4'"),
+    session_id: str | None = None
+):
+    """Upload a photo of an object on paper and generate a 3D model"""
+    allowed_formats = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    
+    if file_ext not in allowed_formats:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only image files are allowed: {', '.join(allowed_formats)}"
+        )
+
+    if paper_size not in ["letter", "a4"]:
+        raise HTTPException(
+            status_code=400,
+            detail="paper_size must be 'letter' or 'a4'"
+        )
+
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, file.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    try:
+        service = PhotoTo3DService()
+        
+        # Analyze the photo
+        analysis = await service.analyze_photo(file_path, paper_size)
+        
+        # Generate mesh from analysis
+        mesh = service.generate_mesh_from_analysis(analysis)
+        
+        # Update session if provided
+        if session_id:
+            session = agent_runner.get_session(session_id)
+            if session:
+                session.state.mesh = mesh
+                agent_runner.notify_mesh_uploaded(
+                    session_id,
+                    file_type="PHOTO",
+                    filename=file.filename,
+                    summary=f"Generated 3D model of {analysis.get('object_name', 'object')}"
+                )
+        
+        # Return mesh data with analysis
+        return {
+            "success": True,
+            "analysis": analysis,
+            "mesh": {
+                "vertices": [
+                    {"id": v.id, "p": list(v.p)} for v in mesh.vertices
+                ],
+                "faces": [list(f) for f in mesh.faces],
+                "edges": [list(e) for e in mesh.edges],
+                "scale_factor": mesh.scale_factor,
+            },
+            "message": f"Successfully created 3D model from photo"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Photo to 3D conversion failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process image: {str(e)}")
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
