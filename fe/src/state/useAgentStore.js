@@ -94,6 +94,7 @@ export const useAgentStore = create((set, get) => ({
   objects: [],
   activeObjectId: null,
   finalized: false,
+  lastProcessedMeshSignature: null,
   
   // Timeline state
   timelineSteps: [],
@@ -181,11 +182,17 @@ export const useAgentStore = create((set, get) => ({
     });
   },
 
-  addMeshObject: (mesh, name, placeOnGround = true) => {
+  addMeshObject: (mesh, name, placeOnGround = false) => {
     if (!mesh?.vertices?.length) return null;
 
     const state = get();
     const sig = meshSignature(mesh);
+    
+    // Skip if we just processed this exact mesh (prevents duplicates from rapid state updates)
+    if (sig === state.lastProcessedMeshSignature) {
+      return state.objects[state.objects.length - 1]?.id || null;
+    }
+    
     const existing = state.objects.find((obj) => (obj.signature || meshSignature(obj.mesh)) === sig);
     if (existing) {
       set((s) => ({
@@ -236,6 +243,7 @@ export const useAgentStore = create((set, get) => ({
         objects: [...s.objects, newObject],
         mesh: finalMesh,
         activeObjectId: objectId,
+        lastProcessedMeshSignature: sig,
       };
     });
 
@@ -431,6 +439,7 @@ export const useAgentStore = create((set, get) => ({
       currentStepIndex: -1,
       messages: [],
       objects: [],
+      lastProcessedMeshSignature: null,
     });
     
     agentApi.onConnect = (sessionId) => {
@@ -449,8 +458,12 @@ export const useAgentStore = create((set, get) => ({
         isLoading: !isDone,
       });
 
+      // Only add mesh if it's new and different from what we've processed
       if (state.mesh?.vertices?.length > 0) {
-        get().addMeshObject(state.mesh);
+        const sig = meshSignature(state.mesh);
+        if (sig !== get().lastProcessedMeshSignature) {
+          get().addMeshObject(state.mesh, undefined, false);
+        }
       }
 
     };
@@ -511,7 +524,7 @@ export const useAgentStore = create((set, get) => ({
     try {
       const mesh = await agentApi.uploadStepFile(file, sessionId);
       set({ isLoading: false });
-      get().addMeshObject(mesh, file.name || 'Upload');
+      get().addMeshObject(mesh, file.name || 'Upload', true);
 
       set((s) => ({
         messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
@@ -531,7 +544,7 @@ export const useAgentStore = create((set, get) => ({
     try {
       const mesh = await agentApi.uploadStlFile(file, sessionId);
       set({ isLoading: false });
-      get().addMeshObject(mesh, file.name || 'Upload');
+      get().addMeshObject(mesh, file.name || 'Upload', true);
 
       set((s) => ({
         messages: [...s.messages, { role: 'assistant', content: `Successfully uploaded and processed ${file.name}` }],
