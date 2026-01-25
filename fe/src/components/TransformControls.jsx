@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAgentStore } from '../state/useAgentStore';
-import { Move3D, RotateCw, Maximize2 } from 'lucide-react';
+import { Move3D, RotateCw, Maximize2, Save } from 'lucide-react';
 
 const TransformControls = ({ objectId }) => {
   const objects = useAgentStore((state) => state.objects);
   const rotateObject = useAgentStore((state) => state.rotateObject);
   const scaleObject = useAgentStore((state) => state.scaleObject);
   const setObjectPosition = useAgentStore((state) => state.setObjectPosition);
+  const timelineTimerRef = useRef(null);
 
   const object = objects.find((o) => o.id === objectId);
   
@@ -26,6 +27,21 @@ const TransformControls = ({ objectId }) => {
   const [rotation, setRotation] = useState([0, 0, 0]);
   const [scalePercentage, setScalePercentage] = useState(100);
   const [expandedSection, setExpandedSection] = useState(null);
+
+  const scheduleTimelineSnapshot = () => {
+    if (timelineTimerRef.current) clearTimeout(timelineTimerRef.current);
+    timelineTimerRef.current = setTimeout(() => {
+      const state = useAgentStore.getState();
+      const latest = state.objects.find((o) => o.id === objectId);
+      if (!latest) return;
+      state.addTimelineStep({
+        objectId,
+        name: `Updated ${latest.name || 'object'} transform`,
+        mesh: latest.mesh,
+        timestamp: Date.now(),
+      });
+    }, 5000);
+  };
 
   useEffect(() => {
     if (object?.transform?.rotation) {
@@ -48,6 +64,7 @@ const TransformControls = ({ objectId }) => {
     newPos[axis] = parseFloat(value) || 0;
     setPosition(newPos);
     setObjectPosition(objectId, newPos);
+    scheduleTimelineSnapshot();
   };
 
   const handleRotationChange = (axis, value) => {
@@ -55,13 +72,46 @@ const TransformControls = ({ objectId }) => {
     newRot[axis] = parseFloat(value) || 0;
     setRotation(newRot);
     rotateObject(objectId, newRot);
+    scheduleTimelineSnapshot();
   };
 
   const handleScaleChange = (value) => {
     const percentage = parseFloat(value) || 100;
     setScalePercentage(percentage);
     scaleObject(objectId, percentage);
+    scheduleTimelineSnapshot();
   };
+
+  const handleSaveSnapshot = () => {
+    // Clear any pending timer
+    if (timelineTimerRef.current) {
+      clearTimeout(timelineTimerRef.current);
+      timelineTimerRef.current = null;
+    }
+    
+    // Immediately add timeline step
+    const state = useAgentStore.getState();
+    const latest = state.objects.find((o) => o.id === objectId);
+    if (!latest) return;
+    state.addTimelineStep({
+      objectId,
+      name: `Saved ${latest.name || 'object'} transform`,
+      mesh: latest.mesh,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Clear pending timer on unmount or object switch
+  useEffect(() => () => {
+    if (timelineTimerRef.current) clearTimeout(timelineTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (timelineTimerRef.current) {
+      clearTimeout(timelineTimerRef.current);
+      timelineTimerRef.current = null;
+    }
+  }, [objectId]);
 
   const axisLabels = ['X', 'Y', 'Z'];
   const axisColors = {
@@ -72,6 +122,15 @@ const TransformControls = ({ objectId }) => {
 
   return (
     <div className="space-y-3">
+      {/* Save Snapshot Button */}
+      <button
+        onClick={handleSaveSnapshot}
+        className="w-full px-3 py-2 flex items-center justify-center gap-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 rounded-lg transition-colors text-indigo-300 hover:text-indigo-200 cursor-pointer"
+      >
+        <Save className="w-4 h-4" />
+        <span className="text-sm font-medium">Save to Timeline</span>
+      </button>
+
       {/* Position Section */}
       <div className="bg-neutral-900/50 border border-white/5 rounded-lg overflow-hidden">
         <button
