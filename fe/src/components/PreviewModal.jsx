@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Download, Camera } from 'lucide-react';
 import PreviewSidebar from './PreviewSidebar';
 import PreviewScene from './PreviewScene';
@@ -10,12 +10,12 @@ const PreviewModal = ({ isOpen, onClose }) => {
   const [isCapturing, setIsCapturing] = useState(false);
   const { mesh } = useAgentStore();
 
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedBackground(null);
-      setCapturedImage(null);
-    }
-  }, [isOpen]);
+  const handleClose = () => {
+    setSelectedBackground(null);
+    setCapturedImage(null);
+    setIsCapturing(false);
+    onClose();
+  };
 
   const handleCapture = (dataURL) => {
     setCapturedImage(dataURL);
@@ -55,7 +55,7 @@ const PreviewModal = ({ isOpen, onClose }) => {
           <div className="flex items-center justify-between p-4 border-b border-white/10">
             <h2 className="text-xl font-semibold text-white">Preview Generator</h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />

@@ -5,6 +5,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import BackgroundScene from "../components/BackgroundScene";
 
 const Landing = () => {
+    const Motion = motion;
     return (
         <div className="relative w-full h-screen overflow-hidden text-white font-sans selection:bg-white selection:text-black">
             <BackgroundScene />
@@ -15,17 +16,17 @@ const Landing = () => {
                 {/* Navbar */}
                 <header className="flex justify-between items-center w-full pointer-events-auto">
                     <div className="flex items-center gap-12">
-                         <motion.div 
+                         <Motion.div 
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                             className="text-xl tracking-tight font-bold"
                         >
                             Sub Labs
-                        </motion.div>
+                        </Motion.div>
                         
                         {/* Desktop Nav Links */}
-                        <motion.nav 
+                        <Motion.nav 
                              initial={{ opacity: 0 }}
                              animate={{ opacity: 1 }}
                              transition={{ duration: 0.8, delay: 0.2 }}
@@ -37,10 +38,10 @@ const Landing = () => {
                                 Resources <ChevronDown size={14} />
                             </a>
                             <a href="#" className="hover:text-white transition-colors">Pricing</a>
-                        </motion.nav>
+                        </Motion.nav>
                     </div>
 
-                    <motion.div
+                    <Motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
@@ -53,30 +54,30 @@ const Landing = () => {
                         >
                             Launch Editor
                         </Link>
-                    </motion.div>
+                    </Motion.div>
                 </header>
 
                 {/* Hero Section - Left Aligned */}
                 <main className="flex flex-col justify-center items-start text-left flex-grow pointer-events-auto max-w-4xl mt-12 md:mt-0">
-                     <motion.h1 
+                     <Motion.h1 
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                         className="text-6xl md:text-8xl lg:text-9xl font-serif tracking-tighter leading-[0.9] mb-8 mix-blend-exclusion"
                     >
                         Frontier <br /> 3D Intelligence.
-                    </motion.h1>
+                    </Motion.h1>
                     
-                    <motion.p 
+                    <Motion.p 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
                         className="text-gray-400 text-lg md:text-2xl tracking-tight font-normal max-w-xl mb-10 leading-relaxed"
                     >
                         The world's first kinetic modeling engine. Build physical products at the speed of thought.
-                    </motion.p>
+                    </Motion.p>
 
-                    <motion.div 
+                    <Motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
@@ -93,12 +94,12 @@ const Landing = () => {
                             <span>Read the research</span>
                             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                         </a>
-                    </motion.div>
+                    </Motion.div>
                 </main>
 
                  {/* Footer / Status Line */}
                  <div className="w-full flex justify-between items-end text-[10px] md:text-xs text-gray-500 uppercase tracking-widest pointer-events-auto border-t border-gray-900 pt-6">
-                    <motion.div
+                    <Motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1, delay: 1 }}
@@ -106,9 +107,9 @@ const Landing = () => {
                     >
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                         System Operational
-                    </motion.div>
+                    </Motion.div>
                     
-                    <motion.div
+                    <Motion.div
                          initial={{ opacity: 0 }}
                          animate={{ opacity: 1 }}
                          transition={{ duration: 1, delay: 1.1 }}
@@ -118,7 +119,7 @@ const Landing = () => {
                         <span className="hidden sm:inline"> | </span>
                         <span className="hidden sm:inline">Privacy</span>
                         <span className="hidden sm:inline">Terms</span>
-                    </motion.div>
+                    </Motion.div>
                  </div>
             </div>
         </div>

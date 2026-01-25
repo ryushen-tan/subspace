@@ -27,7 +27,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
             if (response.ok) {
               existingImages.push(img);
             }
-          } catch (e) {
+          } catch {
             // Image doesn't exist, skip
           }
         }

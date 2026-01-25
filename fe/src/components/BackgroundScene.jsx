@@ -6,7 +6,7 @@ import * as THREE from 'three';
 function FloatingMesh({ position, rotation, scale, speed = 1 }) {
   const meshRef = useRef();
 
-  useFrame((state) => {
+  useFrame(() => {
     // Subtle additional rotation
     if (meshRef.current) {
         meshRef.current.rotation.x += 0.001 * speed;

@@ -27,7 +27,7 @@ export function useDrag3D(options = {}) {
           if (objectRef.current.releasePointerCapture) {
             objectRef.current.releasePointerCapture(pointerIdRef.current);
           }
-        } catch (e) {
+        } catch {
           // Ignore errors if capture was already released
         }
       }

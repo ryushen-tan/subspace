@@ -29,16 +29,6 @@ const DEFAULT_CUBE_MESH = {
   scale_factor: 1,
 };
 
-const meshesAreEqual = (a, b) => {
-  if (!a || !b) return false;
-  try {
-    return JSON.stringify(a) === JSON.stringify(b);
-  } catch (err) {
-    console.warn('Mesh comparison failed', err);
-    return false;
-  }
-};
-
 const meshSignature = (mesh) => {
   if (!mesh) return '';
   try {
@@ -90,30 +80,6 @@ const extractNewGeometry = (allObjects, incomingMesh) => {
     loops: null,
     stitch: null,
     scale_factor: incomingMesh.scale_factor || 1,
-  };
-};
-
-const extractDeltaMesh = (prev, next) => {
-  if (!prev || !next) return next;
-  const prevIds = new Set((prev.vertices || []).map((v) => String(v.id)));
-  const nextVerts = next.vertices || [];
-  const newVertices = nextVerts.filter((v) => !prevIds.has(String(v.id)));
-
-  // If nothing new, keep next as-is
-  if (!newVertices.length) return next;
-
-  const newIdSet = new Set(newVertices.map((v) => String(v.id)));
-
-  const pickEdges = (next.edges || []).filter((e) => newIdSet.has(String(e[0])) && newIdSet.has(String(e[1])));
-  const pickFaces = (next.faces || []).filter((f) => f.some((vid) => newIdSet.has(String(vid))));
-
-  return {
-    vertices: newVertices,
-    edges: pickEdges,
-    faces: pickFaces,
-    loops: null,
-    stitch: null,
-    scale_factor: next.scale_factor || 1,
   };
 };
 
@@ -347,6 +313,7 @@ export const useAgentStore = create((set, get) => ({
       if (state.mesh?.vertices?.length > 0) {
         get().addMeshObject(state.mesh);
       }
+
     };
 
     agentApi.onMessage = (response) => {
@@ -384,7 +351,7 @@ export const useAgentStore = create((set, get) => ({
 
     try {
       await agentApi.connect(initialPrompt);
-    } catch (e) {
+    } catch {
       set({ isLoading: false });
     }
   },

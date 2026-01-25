@@ -4,6 +4,7 @@ import { useAgentStore } from '../state/useAgentStore';
 import { motion } from 'framer-motion';
 
 const LeftControlPanel = () => {
+  const Motion = motion;
   const objects = useAgentStore((state) => state.objects);
   const toggleObjectVisibility = useAgentStore((state) => state.toggleObjectVisibility);
   const renameObject = useAgentStore((state) => state.renameObject);
@@ -83,7 +84,7 @@ const LeftControlPanel = () => {
   const togglePanel = () => setIsOpen(!isOpen);
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ width: 256 }}
       animate={{ width: isOpen ? 256 : 64 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -300,7 +301,7 @@ const LeftControlPanel = () => {
         </div>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 

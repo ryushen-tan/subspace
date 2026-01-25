@@ -1,38 +1,39 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, Edit2 } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 
 const Timeline = () => {
+  const Motion = motion;
   const { timelineSteps, currentStepIndex, scrubToStep, sendMessage } = useAgentStore();
   const [isDragging, setIsDragging] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
   const [editInput, setEditInput] = useState('');
   const timelineRef = useRef(null);
 
-  const handleScrub = (clientX) => {
+  const handleScrub = useCallback((clientX) => {
     if (!timelineRef.current) return;
     const rect = timelineRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
     const percentage = x / rect.width;
     const stepIndex = Math.round(percentage * (timelineSteps.length - 1));
     scrubToStep(stepIndex);
-  };
+  }, [scrubToStep, timelineSteps.length]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
     handleScrub(e.clientX);
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     if (isDragging) {
       handleScrub(e.clientX);
     }
-  };
+  }, [handleScrub, isDragging]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
   const handleStepClick = (index) => {
     scrubToStep(index);
@@ -78,7 +79,7 @@ const Timeline = () => {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Early return after all hooks are called
   if (timelineSteps.length === 0) return null;
@@ -89,7 +90,7 @@ const Timeline = () => {
 
   return (
     <>
-      <motion.div
+      <Motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         className="absolute bottom-6 left-[150px] right-4 bg-neutral-950/40 backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-20"
@@ -126,14 +127,14 @@ const Timeline = () => {
               className="relative h-1 bg-white/10 rounded-full cursor-pointer overflow-visible hover:h-1.5 transition-all"
             >
               {/* Progress Fill */}
-              <motion.div
+              <Motion.div
                 className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full"
                 style={{ width: `${progress}%` }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
 
               {/* Scrubber Handle */}
-              <motion.div
+              <Motion.div
                 className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ left: `${progress}%`, marginLeft: '-5px' }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
@@ -180,18 +181,18 @@ const Timeline = () => {
             <Edit2 className="w-3 h-3" />
           </button>
         </div>
-      </motion.div>
+      </Motion.div>
 
       {/* Edit Prompt Modal */}
       {showEditPrompt && (
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={() => setShowEditPrompt(false)}
         >
-          <motion.div
+          <Motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -225,8 +226,8 @@ const Timeline = () => {
                 Send
               </button>
             </div>
-          </motion.div>
-        </motion.div>
+          </Motion.div>
+        </Motion.div>
       )}
     </>
   );

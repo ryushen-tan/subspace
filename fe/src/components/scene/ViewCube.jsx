@@ -1,6 +1,5 @@
 import { GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import { useMemo } from 'react';
-import { useThree } from '@react-three/fiber';
 
 export function ViewCube({ controlsRef }) {
   const { size } = useThree();

@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import MarkdownLink from './MarkdownLink';
 
 const MarkdownContent = ({ content }) => {
+  const textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
   return (
     <div className="prose prose-invert prose-sm max-w-none">
       <ReactMarkdown
@@ -37,7 +38,7 @@ const MarkdownContent = ({ content }) => {
           ),
         }}
       >
-        {content}
+        {textContent}
       </ReactMarkdown>
     </div>
   );

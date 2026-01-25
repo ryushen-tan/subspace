@@ -3,7 +3,7 @@ import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
 import { useAgentStore } from '../state/useAgentStore';
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
@@ -18,6 +18,8 @@ function MeshSurface({ mesh, pointOverrides, color }) {
     </mesh>
   );
 }
+
+
 
 function MeshEdges({ mesh, pointOverrides }) {
   const geometry = useMemo(() => buildEdgesGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
@@ -82,6 +84,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   const objects = useAgentStore((state) => state.objects);
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef(null);
+
   
   const pointOverrides = useMemo(() => {
     const map = new Map();
@@ -89,25 +92,29 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     return map;
   }, [points]);
 
-  const startManualIdle = () => {
+  const startManualIdle = useCallback(() => {
     // Manually start auto-rotate and stop the idle timer
     setIsIdle(true);
     if (idleTimerRef.current) {
       clearTimeout(idleTimerRef.current);
       idleTimerRef.current = null;
     }
-  };
+  }, []);
 
   // Idle detection - 1 minute (60000ms)
-  const resetIdleTimer = () => {
-    setIsIdle(false);
+  const startIdleTimer = useCallback(() => {
     if (idleTimerRef.current) {
       clearTimeout(idleTimerRef.current);
     }
     idleTimerRef.current = setTimeout(() => {
       setIsIdle(true);
     }, 60000); // 1 minute
-  };
+  }, []);
+
+  const resetIdleTimer = useCallback(() => {
+    setIsIdle(false);
+    startIdleTimer();
+  }, [startIdleTimer]);
 
   useEffect(() => {
     // Track user interactions; ignore the manual hotkey so it can trigger auto-rotate
@@ -121,7 +128,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     });
 
     // Start initial timer
-    resetIdleTimer();
+    startIdleTimer();
 
     return () => {
       events.forEach(event => {
@@ -131,7 +138,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
         clearTimeout(idleTimerRef.current);
       }
     };
-  }, []);
+  }, [resetIdleTimer, startIdleTimer]);
 
   useEffect(() => {
     // Keyboard shortcut: press "R" to start auto-rotate
@@ -147,7 +154,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [startManualIdle]);
   
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0">
@@ -220,6 +227,8 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
           <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} />
         </group>
       ))}
+
+
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />

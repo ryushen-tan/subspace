@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any
 from .mesh import Mesh
 
 
 class AgentState(BaseModel):
-    mesh: Mesh = Mesh()
-    todo: list[dict] = []  # [{"text": "task", "done": False}, ...]
+    mesh: Mesh = Field(default_factory=Mesh)
+    todo: list[dict] = Field(default_factory=list)  # [{"text": "task", "done": False}, ...]
     iteration: int = 0
     finalized: bool = False
     task_complete: bool = False
@@ -13,6 +13,6 @@ class AgentState(BaseModel):
 
 class Session(BaseModel):
     id: str
-    state: AgentState = AgentState()
-    history: list[dict[str, Any]] = []
+    state: AgentState = Field(default_factory=AgentState)
+    history: list[dict[str, Any]] = Field(default_factory=list)
     user_prompt: str = ""

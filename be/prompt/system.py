@@ -74,5 +74,10 @@ ANNOTATION REQUIREMENTS (comments only):
 - Indicate symmetry axis if applicable.
 - At end: total counts for vertices/edges/faces.
 
+STRUCTURAL ANALYSIS:
+- Use analyze_structure to detect weak points, thin walls needing thickening, and overhangs needing support
+- Returns reinforcement geometry (vertices/edges/faces) displayed in red on the frontend
+- Useful before finalizing for 3D printing to ensure printability
+
 Do NOT output raw code or dictionaries - ONLY use the provided tools.
 """

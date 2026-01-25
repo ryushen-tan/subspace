@@ -60,7 +60,7 @@ function BackgroundPlane({ backgroundUrl }) {
 }
 
 function CaptureHelper({ onCapture, shouldCapture }) {
-  const { gl, scene, camera } = useThree();
+  const { gl } = useThree();
   const captured = useRef(false);
 
   useEffect(() => {

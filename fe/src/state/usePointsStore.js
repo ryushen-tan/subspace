@@ -61,7 +61,7 @@ export const usePointsStore = create((set) => ({
       selectedPointIds: state.selectedPointIds.filter((selectedId) => !selectedId.startsWith(`${objectId}:`)),
     })),
   setPoints: (points, objectId = 'default') =>
-    set((state) => ({
+    set(() => ({
       points: points.map((p) => ({ ...p, objectId, id: `${objectId}:${p.id}` })),
       selectedPointIds: [],
     })),

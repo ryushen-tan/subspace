@@ -12,6 +12,7 @@ from services.step_analyzer import analyze_step_file
 from models.mesh import Mesh
 from services.preview_generator import generate_preview_image
 from fastapi.responses import Response
+from tools import tool_registry
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +250,6 @@ async def agent_ws(websocket: WebSocket):
                 continue
 
             message_type = payload.get("type")
-            print(f"Received message type: {message_type}, payload: {payload}")
 
             if message_type == "start":
                 prompt = payload.get("prompt", "")
@@ -278,17 +278,46 @@ async def agent_ws(websocket: WebSocket):
 
             if message_type == "message":
                 content = payload.get("content", "")
+                
+                if content.strip().startswith("/"):
+                    cmd = content.strip().split()[0].lower()
+                    tool_map = {
+                        "/generate-supports": "generate_supports",
+                        "/inspect-mesh": "inspect_mesh",
+                        "/verify": "verify_mesh",
+                        "/render": "render_preview",
+                        "/finalize": "finalize",
+                    }
+                    tool_name = tool_map.get(cmd)
+                    if tool_name and tool_name in tool_registry:
+                        tool = tool_registry[tool_name]
+                        try:
+                            result = tool.execute(session.state)
+                            await websocket.send_json({
+                                "type": "response",
+                                "response": {"id": f"cmd_{tool_name}", "result": result},
+                                "state": session.state.model_dump(),
+                            })
+                        except Exception as e:
+                            await websocket.send_json({
+                                "type": "response",
+                                "response": {"id": f"cmd_{tool_name}", "error": str(e)},
+                                "state": session.state.model_dump(),
+                            })
+                    else:
+                        await websocket.send_json({
+                            "type": "error",
+                            "message": f"Unknown command: {cmd}",
+                        })
+                    continue
+                
                 agent_runner.add_message(session_id, "user", content)
-                # Reset flags to allow continued editing
                 session.state.task_complete = False
                 session.state.finalized = False
                 session.state.iteration = 0
-                print(f"Starting agent loop. task_complete={session.state.task_complete}, finalized={session.state.finalized}")
                 try:
                     while not session.state.task_complete and not session.state.finalized:
-                        print(f"Calling run_step, iteration={session.state.iteration}")
                         response = agent_runner.run_step(session_id)
-                        print(f"run_step returned: {response}")
                         await websocket.send_json({
                             "type": "response",
                             "response": response.model_dump() if response else None,
@@ -297,77 +326,14 @@ async def agent_ws(websocket: WebSocket):
                         if response and response.error:
                             break
                 except Exception as e:
-                    print(f"Error in run_step: {e}")
                     await websocket.send_json({
                         "type": "error",
                         "message": str(e),
                     })
                 continue
 
-            if message_type == "tool_response":
-                tool_id = payload.get("id")
-                if not tool_id:
-                    await websocket.send_json({"type": "error", "message": "Missing tool id"})
-                    continue
-                session.history.append({
-                    "role": "tool",
-                    "tool_call_id": tool_id,
-                    "content": str(payload.get("result") or payload.get("error")),
-                })
-                await websocket.send_json({"type": "ack", "id": tool_id})
-                continue
-
-            if message_type == "state":
-                await websocket.send_json({"type": "state", "state": session.state.model_dump()})
-                continue
-
-            await websocket.send_json({"type": "error", "message": "Unknown message type"})
     except WebSocketDisconnect:
         return
-
-
-@router.post("/upload-stl")
-async def upload_stl(file: UploadFile = File(...), session_id: str | None = None):
-    if not file.filename.endswith('.stl'):
-        raise HTTPException(status_code=400, detail="Only .stl files are allowed")
-
-    temp_dir = "temp_uploads"
-    os.makedirs(temp_dir, exist_ok=True)
-    file_path = os.path.join(temp_dir, file.filename)
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    try:
-        # Get the absolute path to the converter script
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        converter_path = os.path.join(base_dir, "utils", "stl_converter.py")
-        
-        # Run the converter script
-        result = subprocess.run(
-            ["python3", converter_path, file_path],
-            capture_output=True,
-            text=True
-        )
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Conversion failed: {result.stderr}")
-        
-        mesh_data = json.loads(result.stdout)
-        if "error" in mesh_data:
-            raise HTTPException(status_code=500, detail=mesh_data["error"])
-        
-        if session_id:
-            session = agent_runner.get_session(session_id)
-            if session:
-                session.state.mesh = Mesh(**mesh_data)
-                # Notify agent about the uploaded mesh
-                agent_runner.notify_mesh_uploaded(session_id, file_type="STL", filename=file.filename)
-        
-        return mesh_data
-    finally:
-        if os.path.exists(file_path):
-            os.remove(file_path)
 
 
 class PreviewRequest(BaseModel):

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { TransformControls } from '@react-three/drei';
 import { usePointsStore } from '../../state/usePointsStore';
 import { useAgentStore } from '../../state/useAgentStore';
@@ -13,8 +13,13 @@ export function DraggablePoint({ point }) {
   const setDragging = usePointsStore((state) => state.setDragging);
   const updateVertexPosition = useAgentStore((state) => state.updateVertexPosition);
   const isSelected = selectedPointIds.includes(point.id);
-  const isPrimarySelected = selectedPointIds.length > 0 && selectedPointIds[0] === point.id;
   const isMultiSelected = selectedPointIds.length > 1 && isSelected;
+  const [transformTarget, setTransformTarget] = useState(null);
+
+  const setMeshRef = useCallback((node) => {
+    meshRef.current = node;
+    setTransformTarget(node);
+  }, []);
 
   useEffect(() => {
     if (!meshRef.current) return;
@@ -22,18 +27,9 @@ export function DraggablePoint({ point }) {
     meshRef.current.position.set(x, y, z);
   }, [point.position]);
 
-  const getSelectedPointsPositions = useCallback(() => {
-    const positions = {};
-    selectedPointIds.forEach(id => {
-      const p = points.find(pt => pt.id === id);
-      if (p) positions[id] = [...p.position];
-    });
-    return positions;
-  }, [selectedPointIds, points]);
-
   return (
     <>
-      <group ref={meshRef} position={point.position} userData={{ pointId: point.id }}>
+      <group ref={setMeshRef} position={point.position} userData={{ pointId: point.id }}>
         <mesh
           onPointerDown={(e) => {
             e.stopPropagation();
@@ -64,9 +60,9 @@ export function DraggablePoint({ point }) {
 
       </group>
 
-      {isSelected && meshRef.current && (
+      {isSelected && transformTarget && (
         <TransformControls
-          object={meshRef.current}
+          object={transformTarget}
           mode="translate"
           showX
           showY

@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check, Command } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
 import ControlsOverlay from './ControlsOverlay';
 import MarkdownContent from './MarkdownContent';
 
+const COMMANDS = [
+  { name: '/inspect-mesh', description: 'View mesh stats and structure info' },
+  { name: '/verify', description: 'Validate mesh for errors' },
+  { name: '/render', description: 'Generate a preview render' },
+  { name: '/finalize', description: 'Finalize the model for export' },
+];
+
 const SidebarChat = ({ isOpen, setIsOpen }) => {
+  const Motion = motion;
   const [input, setInput] = useState('');
+  const [selectedCommandIdx, setSelectedCommandIdx] = useState(0);
   const messagesEndRef = useRef(null);
   
   const {
@@ -28,13 +37,41 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
     if (!isConnected) {
       connect();
     }
-  }, []);
+  }, [connect, isConnected]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const filteredCommands = useMemo(() => {
+    if (!input.startsWith('/')) return [];
+    const query = input.toLowerCase();
+    return COMMANDS.filter(cmd => cmd.name.toLowerCase().startsWith(query));
+  }, [input]);
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    setSelectedCommandIdx(0);
+  };
+
+  const handleKeyDown = (e) => {
+    if (filteredCommands.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedCommandIdx(i => Math.min(i + 1, filteredCommands.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedCommandIdx(i => Math.max(i - 1, 0));
+      } else if (e.key === 'Tab' || e.key === 'Enter') {
+        if (filteredCommands[selectedCommandIdx]) {
+          e.preventDefault();
+          setInput(filteredCommands[selectedCommandIdx].name + ' ');
+        }
+      }
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -77,7 +114,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
   };
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ width: 320 }}
       animate={{ width: isOpen ? 320 : 64 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -110,7 +147,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           {/* Messages */}
           <AnimatePresence>
             {messages.length === 0 && todo.length === 0 ? (
-              <motion.div 
+              <Motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
                 className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-50"
@@ -119,10 +156,10 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                   <MessageSquare className="w-6 h-6 text-gray-500" />
                 </div>
                 <p className="text-sm text-gray-500">Describe what you want to create...</p>
-              </motion.div>
+              </Motion.div>
             ) : (
               messages.map((msg, i) => (
-                <motion.div
+                <Motion.div
                   key={i}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -137,7 +174,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                   ) : (
                     msg.content
                   )}
-                </motion.div>
+                </Motion.div>
               ))
             )}
           </AnimatePresence>
@@ -215,26 +252,57 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="relative flex items-center">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              disabled={isLoading}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className="absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200"
-            >
-              <Send className="w-4 h-4" />
-            </button>
+          <form onSubmit={handleSubmit} className="relative">
+            {/* Command Autocomplete Popup */}
+            <AnimatePresence>
+              {filteredCommands.length > 0 && (
+                <Motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-neutral-900 border border-white/10 rounded-xl overflow-hidden shadow-xl"
+                >
+                  {filteredCommands.map((cmd, i) => (
+                    <div
+                      key={cmd.name}
+                      onClick={() => setInput(cmd.name + ' ')}
+                      className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
+                        i === selectedCommandIdx ? 'bg-indigo-600/30' : 'hover:bg-white/5'
+                      }`}
+                    >
+                      <Command className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-gray-200">{cmd.name}</div>
+                        <div className="text-xs text-gray-500 truncate">{cmd.description}</div>
+                      </div>
+                    </div>
+                  ))}
+                </Motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Type / for commands..."
+                disabled={isLoading}
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
           </form>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 
