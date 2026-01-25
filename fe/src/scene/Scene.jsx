@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Grid, PerspectiveCamera, TransformControls } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
 import { useAgentStore } from '../state/useAgentStore';
@@ -9,22 +9,30 @@ import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
 import WorkspaceBottomBar from '../components/WorkspaceBottomBar';
 
-function MeshSurface({ mesh, pointOverrides, color }) {
+function MeshSurface({ mesh, pointOverrides, color, isActive, onSelect }) {
   const geometry = useMemo(() => buildMeshGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
-    <mesh geometry={geometry}>
-      <meshPhongMaterial color={color || '#4f46e5'} side={THREE.DoubleSide} transparent opacity={0.8} flatShading />
+    <mesh geometry={geometry} onPointerDown={onSelect}>
+      <meshPhongMaterial
+        color={color || '#4f46e5'}
+        side={THREE.DoubleSide}
+        transparent
+        opacity={isActive ? 0.95 : 0.8}
+        emissive={isActive ? '#60a5fa' : '#0f172a'}
+        emissiveIntensity={isActive ? 0.35 : 0.1}
+        flatShading
+      />
     </mesh>
   );
 }
 
-function MeshEdges({ mesh, pointOverrides }) {
+function MeshEdges({ mesh, pointOverrides, isActive }) {
   const geometry = useMemo(() => buildEdgesGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#111827" />
+      <lineBasicMaterial color={isActive ? '#a5b4fc' : '#111827'} />
     </lineSegments>
   );
 }
@@ -79,15 +87,26 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
   const points = usePointsStore((state) => state.points);
+  const setDragging = usePointsStore((state) => state.setDragging);
   const objects = useAgentStore((state) => state.objects);
+  const activeObjectId = useAgentStore((state) => state.activeObjectId);
+  const setActiveObject = useAgentStore((state) => state.setActiveObject);
+  const translateObject = useAgentStore((state) => state.translateObject);
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef(null);
+  const activeHandleRef = useRef(new THREE.Object3D());
+  const lastHandlePosRef = useRef(new THREE.Vector3());
   
   const pointOverrides = useMemo(() => {
     const map = new Map();
     points.forEach(p => map.set(p.id, p.position));
     return map;
   }, [points]);
+
+  const activeObject = useMemo(
+    () => objects.find((o) => o.id === activeObjectId),
+    [objects, activeObjectId]
+  );
 
   const startManualIdle = () => {
     // Manually start auto-rotate and stop the idle timer
@@ -148,6 +167,26 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!activeObject) return;
+    const center = new THREE.Vector3();
+    const verts = activeObject.mesh?.vertices || [];
+    if (verts.length === 0) return;
+
+    verts.forEach((v) => {
+      const pos = pointOverrides.get(v.id) || v.p || [0, 0, 0];
+      center.x += pos[0];
+      center.y += pos[1];
+      center.z += pos[2];
+    });
+    center.multiplyScalar(1 / verts.length);
+
+    if (activeHandleRef.current) {
+      activeHandleRef.current.position.copy(center);
+      lastHandlePosRef.current.copy(center);
+    }
+  }, [activeObject, pointOverrides]);
   
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0">
@@ -213,13 +252,62 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
       {/* Point Cloud */}
       <PointCloud />
 
+      {/* Anchor for object gizmo */}
+      <primitive object={activeHandleRef.current} />
+
       {/* Mesh Surface & Edges */}
-      {objects.map((obj) => (
-        <group key={obj.id} visible={obj.visible}>
-          <MeshSurface mesh={obj.mesh} pointOverrides={pointOverrides} color={obj.color} />
-          <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} />
-        </group>
-      ))}
+      {objects.map((obj) => {
+        const isActive = obj.id === activeObjectId;
+        return (
+          <group
+            key={obj.id}
+            visible={obj.visible}
+            onPointerDown={(e) => {
+              if (e.button !== 0) return;
+              e.stopPropagation();
+              setActiveObject(obj.id);
+            }}
+          >
+            <MeshSurface
+              mesh={obj.mesh}
+              pointOverrides={pointOverrides}
+              color={obj.color}
+              isActive={isActive}
+              onSelect={(e) => {
+                if (e.button !== 0) return;
+                e.stopPropagation();
+                setActiveObject(obj.id);
+              }}
+            />
+            <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} isActive={isActive} />
+          </group>
+        );
+      })}
+
+      {/* Object Transform Controls */}
+      {activeObject && (
+        <TransformControls
+          object={activeHandleRef.current}
+          mode="translate"
+          showX
+          showY
+          showZ
+          translationSnap={0.1}
+          onMouseDown={() => setDragging(true)}
+          onMouseUp={() => setDragging(false)}
+          onObjectChange={() => {
+            if (!activeObject || !activeHandleRef.current) return;
+            const current = activeHandleRef.current.position;
+            const last = lastHandlePosRef.current;
+            const dx = current.x - last.x;
+            const dy = current.y - last.y;
+            const dz = current.z - last.z;
+            if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6 && Math.abs(dz) < 1e-6) return;
+            translateObject(activeObject.id, [dx, dy, dz]);
+            lastHandlePosRef.current.copy(current);
+          }}
+        />
+      )}
 
       {/* ViewCube */}
       <ViewCube controlsRef={controlsRef} isSidebarOpen={isSidebarOpen} />
