@@ -8,6 +8,7 @@ export const useVoiceRecorder = () => {
   const streamRef = useRef(null);
 
   const startRecording = useCallback(async () => {
+    console.log('[useVoiceRecorder] Requesting microphone access...');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -19,6 +20,7 @@ export const useVoiceRecorder = () => {
         } 
       });
       
+      console.log('[useVoiceRecorder] Microphone access granted.');
       streamRef.current = stream;
       audioChunksRef.current = [];
       
@@ -33,24 +35,30 @@ export const useVoiceRecorder = () => {
       };
       
       mediaRecorder.onstop = () => {
+        console.log('[useVoiceRecorder] MediaRecorder stopped.');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setIsProcessing(true);
         
-        streamRef.current?.getTracks().forEach(track => track.stop());
+        streamRef.current?.getTracks().forEach(track => {
+          console.log(`[useVoiceRecorder] Stopping track: ${track.label}`);
+          track.stop();
+        });
       };
       
       mediaRecorder.start(100);
+      console.log('[useVoiceRecorder] MediaRecorder started with 100ms interval.');
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
       setIsProcessing(false);
     } catch (error) {
-      console.error('Error starting recording:', error);
+      console.error('[useVoiceRecorder] Error starting recording:', error);
       throw error;
     }
   }, []);
 
   const stopRecording = useCallback(async () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      console.log('[useVoiceRecorder] Stopping recording...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
@@ -58,13 +66,16 @@ export const useVoiceRecorder = () => {
       
       if (audioChunksRef.current.length > 0) {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log(`[useVoiceRecorder] Audio blob created, size: ${audioBlob.size} bytes`);
         return audioBlob;
       }
     }
+    console.warn('[useVoiceRecorder] stopRecording called but recorder is not active.');
     return null;
   }, []);
 
   const cancelRecording = useCallback(() => {
+    console.log('[useVoiceRecorder] Cancelling recording...');
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }

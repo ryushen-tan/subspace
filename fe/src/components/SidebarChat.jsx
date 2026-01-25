@@ -191,10 +191,11 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       e.preventDefault();
       e.stopPropagation();
     }
+    console.log('[Voice] Starting recording...');
     try {
       await startRecording();
     } catch (error) {
-      console.error('Failed to start recording:', error);
+      console.error('[Voice] Failed to start recording:', error);
     }
   };
 
@@ -203,16 +204,28 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       e.preventDefault();
       e.stopPropagation();
     }
+    
+    if (!isRecording) {
+      return;
+    }
+
+    console.log('[Voice] Stopping recording and processing audio...');
     try {
       const audioBlob = await stopRecording();
       if (audioBlob) {
+        console.log(`[Voice] Recorded audio size: ${audioBlob.size} bytes`);
         const transcription = await transcribeAudio(audioBlob);
         if (transcription) {
+          console.log('[Voice] Transcription successful, updating input.');
           setInput(prev => prev + transcription);
+        } else {
+          console.warn('[Voice] Transcription returned empty text.');
         }
+      } else {
+        console.warn('[Voice] No audio blob captured.');
       }
     } catch (error) {
-      console.error('Error handling voice input:', error);
+      console.error('[Voice] Error handling voice input:', error);
       cancelRecording();
     }
   };
@@ -222,6 +235,12 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       e.preventDefault();
       e.stopPropagation();
     }
+    
+    if (!isRecording) {
+      return;
+    }
+
+    console.log('[Voice] Recording cancelled by user.');
     cancelRecording();
   };
 
@@ -496,7 +515,6 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                 type="button"
                 onMouseDown={handleVoiceStart}
                 onMouseUp={handleVoiceEnd}
-                onMouseLeave={handleVoiceCancel}
                 onTouchStart={handleVoiceStart}
                 onTouchEnd={handleVoiceEnd}
                 disabled={isLoading || isTranscribing}
