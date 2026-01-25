@@ -184,10 +184,7 @@ export const useAgentStore = create((set, get) => ({
     const existing = state.objects.find((obj) => (obj.signature || meshSignature(obj.mesh)) === sig);
     if (existing) {
       set((s) => ({
-        objects: s.objects.map((obj) => ({
-          ...obj,
-          visible: obj.id === existing.id,
-        })),
+        objects: s.objects, // keep all visibilities unchanged
         activeObjectId: existing.id,
         mesh: existing.mesh,
       }));
@@ -197,14 +194,13 @@ export const useAgentStore = create((set, get) => ({
     // Extract only geometry not present in ANY existing object (position-based)
     const finalMesh = extractNewGeometry(state.objects, mesh);
     if (!finalMesh) {
-      // No new geometry; focus last object and bail
+      // No new geometry; just keep existing visibility and focus last
       const last = state.objects[state.objects.length - 1];
       if (last) {
-        set((s) => ({
-          objects: s.objects.map((obj) => ({ ...obj, visible: obj.id === last.id })),
+        set({
           activeObjectId: last.id,
           mesh: last.mesh,
-        }));
+        });
         return last.id;
       }
       return null;
