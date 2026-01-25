@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     openrouter_model: str = "google/gemini-3-pro-preview"
     gemini_model: str = "gemini-3-flash-preview"
     openrouter_max_tokens: int = 24000
+    openrouter_include_reasoning: bool | None = None
+    openrouter_reasoning_effort: str | None = None # "None', "Low", "Medium", "High"
     max_agent_iterations: int = 20
     
     # PocketBase configuration

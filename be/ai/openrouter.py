@@ -12,6 +12,8 @@ class OpenRouterClient:
         )
         self.model = settings.openrouter_model
         self.max_tokens = settings.openrouter_max_tokens
+        self.include_reasoning = settings.openrouter_include_reasoning
+        self.reasoning_effort = settings.openrouter_reasoning_effort
 
     def chat(
         self,
@@ -24,6 +26,15 @@ class OpenRouterClient:
             "messages": messages,
             "max_tokens": self.max_tokens,
         }
+
+        extra_body = {}
+        if self.include_reasoning is not None:
+            extra_body["include_reasoning"] = self.include_reasoning
+        if self.reasoning_effort:
+            extra_body["reasoning"] = {"effort": self.reasoning_effort}
+
+        if extra_body:
+            kwargs["extra_body"] = extra_body
 
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
@@ -75,6 +86,15 @@ class OpenRouterClient:
             "messages": messages,
             "max_tokens": self.max_tokens,
         }
+
+        extra_body = {}
+        if self.include_reasoning is not None:
+            extra_body["include_reasoning"] = self.include_reasoning
+        if self.reasoning_effort:
+            extra_body["reasoning"] = {"effort": self.reasoning_effort}
+
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         
         # Don't use json_mode for vision requests
         response = self.client.chat.completions.create(**kwargs)
