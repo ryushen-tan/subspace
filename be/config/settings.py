@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"
+        extra="allow"
     )
     llm_provider: str = "openrouter" # "gemini" or "openrouter"
     openrouter_api_key: str | None = None
@@ -18,10 +18,6 @@ class Settings(BaseSettings):
     
     # PocketBase configuration
     pocketbase_url: str = "http://127.0.0.1:8090"  # PocketBase server URL
-
-    class Config:
-        env_file = ".env"
-        extra = "allow"
 
 
 @lru_cache
