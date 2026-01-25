@@ -91,6 +91,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   const objects = useAgentStore((state) => state.objects);
   const activeObjectId = useAgentStore((state) => state.activeObjectId);
   const setActiveObject = useAgentStore((state) => state.setActiveObject);
+  const clearActiveObject = useAgentStore((state) => state.clearActiveObject);
   const translateObject = useAgentStore((state) => state.translateObject);
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef(null);
@@ -170,21 +171,17 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
 
   useEffect(() => {
     if (!activeObject) return;
-    const center = new THREE.Vector3();
     const verts = activeObject.mesh?.vertices || [];
     if (verts.length === 0) return;
 
-    verts.forEach((v) => {
-      const pos = pointOverrides.get(v.id) || v.p || [0, 0, 0];
-      center.x += pos[0];
-      center.y += pos[1];
-      center.z += pos[2];
-    });
-    center.multiplyScalar(1 / verts.length);
+    // Use the first vertex as the gizmo position (corner vertex)
+    const cornerVert = verts[0];
+    const cornerPos = pointOverrides.get(cornerVert.id) || cornerVert.p || [0, 0, 0];
+    const corner = new THREE.Vector3(cornerPos[0], cornerPos[1], cornerPos[2]);
 
     if (activeHandleRef.current) {
-      activeHandleRef.current.position.copy(center);
-      lastHandlePosRef.current.copy(center);
+      activeHandleRef.current.position.copy(corner);
+      lastHandlePosRef.current.copy(corner);
     }
   }, [activeObject, pointOverrides]);
   
@@ -198,6 +195,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
           // Clear selection when clicking on empty space (not on a point)
           if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
             clearSelection();
+            clearActiveObject();
           }
         }}
       >

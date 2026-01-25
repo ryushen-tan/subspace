@@ -312,6 +312,11 @@ export const useAgentStore = create((set, get) => ({
     });
   },
 
+  clearActiveObject: () =>
+    set({
+      activeObjectId: null,
+    }),
+
   deleteObject: (objectId) =>
     set((state) => {
       const remaining = state.objects.filter((obj) => obj.id !== objectId);
