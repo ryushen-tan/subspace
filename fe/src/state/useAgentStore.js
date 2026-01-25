@@ -84,6 +84,26 @@ export const useAgentStore = create((set, get) => ({
       return existing.id;
     }
 
+    // If new mesh introduces no unseen vertices across all objects, treat it as already represented
+    const knownIds = new Set(
+      state.objects.flatMap((obj) => (obj.mesh?.vertices || []).map((v) => String(v.id)))
+    );
+    const incomingIds = new Set((mesh.vertices || []).map((v) => String(v.id)));
+    const newIds = [...incomingIds].filter((id) => !knownIds.has(id));
+    if (newIds.length === 0) {
+      // No new geometry; focus last object and bail
+      const last = state.objects[state.objects.length - 1];
+      if (last) {
+        set((s) => ({
+          objects: s.objects.map((obj) => ({ ...obj, visible: obj.id === last.id })),
+          activeObjectId: last.id,
+          mesh: last.mesh,
+        }));
+        return last.id;
+      }
+      return null;
+    }
+
     // If previous layer exists and new mesh contains prior geometry plus additions, isolate only the new geometry
     const prev = state.objects[state.objects.length - 1]?.mesh;
     const maybeDelta = extractDeltaMesh(prev, mesh);
