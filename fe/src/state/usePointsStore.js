@@ -33,6 +33,13 @@ export const usePointsStore = create((set) => ({
       ),
     })),
 
+  updatePoints: (updates) =>
+    set((state) => ({
+      points: state.points.map((p) =>
+        updates[p.id] ? { ...p, position: updates[p.id] } : p
+      ),
+    })),
+
   setPoints: (points) => set({ points }),
   
   setDragging: (isDragging) => set({ isDragging }),

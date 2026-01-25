@@ -4,6 +4,28 @@ import { usePointsStore } from './usePointsStore';
 
 const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe', '#fd79a8', '#00b894'];
 
+const DEFAULT_CUBE_MESH = {
+  vertices: [
+    { id: '1', p: [-0.5, -0.5, -0.5] },
+    { id: '2', p: [0.5, -0.5, -0.5] },
+    { id: '3', p: [0.5, 0.5, -0.5] },
+    { id: '4', p: [-0.5, 0.5, -0.5] },
+    { id: '5', p: [-0.5, -0.5, 0.5] },
+    { id: '6', p: [0.5, -0.5, 0.5] },
+    { id: '7', p: [0.5, 0.5, 0.5] },
+    { id: '8', p: [-0.5, 0.5, 0.5] },
+  ],
+  faces: [
+    ['1', '2', '3', '4'], // back
+    ['5', '8', '7', '6'], // front
+    ['1', '5', '6', '2'], // bottom
+    ['4', '3', '7', '8'], // top
+    ['1', '4', '8', '5'], // left
+    ['2', '6', '7', '3'], // right
+  ],
+  edges: [],
+};
+
 export const useAgentStore = create((set, get) => ({
   sessionId: null,
   isConnected: false,
@@ -11,7 +33,7 @@ export const useAgentStore = create((set, get) => ({
   todo: [],
   messages: [],
   toolCalls: [],
-  mesh: null,
+  mesh: DEFAULT_CUBE_MESH,
   finalized: false,
 
   connect: async (initialPrompt = '') => {
