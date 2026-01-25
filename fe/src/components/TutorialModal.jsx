@@ -47,13 +47,15 @@ const TutorialModal = ({ isOpen, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm cursor-pointer"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-[600px] bg-neutral-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-[600px] bg-neutral-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl cursor-default"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
