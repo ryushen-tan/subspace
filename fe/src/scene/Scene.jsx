@@ -150,7 +150,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   }, []);
   
   return (
-    <div className="absolute top-0 left-64 right-0 bottom-0">
+    <div className="absolute top-0 left-0 right-0 bottom-0">
       <Canvas
         shadows
         gl={{ antialias: true, alpha: true }}

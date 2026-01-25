@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
+import { motion } from 'framer-motion';
 
 const LeftControlPanel = () => {
   const objects = useAgentStore((state) => state.objects);
@@ -77,10 +78,36 @@ const LeftControlPanel = () => {
       updateObjectColor(object.id, clean);
     }
   };
+  const [isOpen, setIsOpen] = useState(true);
+
+  const togglePanel = () => setIsOpen(!isOpen);
 
   return (
-    <div className="absolute top-0 left-0 bottom-0 w-64 bg-neutral-950/95 backdrop-blur-md border-r border-white/10 z-10 overflow-y-auto">
-      <div className="p-4 space-y-6">
+    <motion.div
+      initial={{ width: 256 }}
+      animate={{ width: isOpen ? 256 : 64 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="absolute top-4 left-4 h-[80vh] bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl"
+    >
+      {/* Top Bar with Toggle */}
+      <div className={`relative flex items-center border-b border-white/5 ${isOpen ? 'justify-between px-3 py-2.5' : 'justify-center p-2'}`}>
+        {isOpen ? (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Layers className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <span className="font-medium text-gray-200 text-sm truncate">Controls</span>
+          </div>
+        ) : null}
+        <button
+          onClick={togglePanel}
+          className={`p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0 ${isOpen ? '' : 'w-full'}`}
+        >
+          {isOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* Content Section */}
+      <div className={`flex-1 flex flex-col min-w-[256px] min-h-0 overflow-hidden transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-6">
         {/* Advance option Section */}
         <div className="space-y-4">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Advance option</h3>
@@ -271,8 +298,9 @@ const LeftControlPanel = () => {
             })}
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
