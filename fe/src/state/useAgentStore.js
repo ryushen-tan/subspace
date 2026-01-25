@@ -142,7 +142,7 @@ export const useAgentStore = create((set, get) => ({
     });
   },
 
-  addMeshObject: (mesh, name) => {
+  addMeshObject: (mesh, name, placeOnGround = true) => {
     if (!mesh?.vertices?.length) return null;
 
     const state = get();
@@ -158,7 +158,16 @@ export const useAgentStore = create((set, get) => ({
     }
 
     // Extract only geometry not present in ANY existing object (position-based)
-    const finalMesh = extractNewGeometry(state.objects, mesh);
+    let finalMesh = extractNewGeometry(state.objects, mesh);
+    
+    // Place on ground plane (min Y = 0) unless specified otherwise
+    if (placeOnGround && finalMesh?.vertices?.length) {
+      const minY = Math.min(...finalMesh.vertices.map(v => v.p[1]));
+      finalMesh = {
+        ...finalMesh,
+        vertices: finalMesh.vertices.map(v => ({ ...v, p: [v.p[0], v.p[1] - minY, v.p[2]] })),
+      };
+    }
     if (!finalMesh) {
       // No new geometry; just keep existing visibility and focus last
       const last = state.objects[state.objects.length - 1];

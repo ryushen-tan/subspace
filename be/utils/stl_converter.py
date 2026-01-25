@@ -184,6 +184,11 @@ def stl_to_mesh(stl_path, source_name: str | None = None, simplify: bool = True,
                 v["source"] = source_name
             scaled_vertices.append(v)
         
+        # Shift to ground plane: move all vertices so min Y = 0
+        min_y = min(v["p"][1] for v in scaled_vertices)
+        for v in scaled_vertices:
+            v["p"][1] -= min_y
+        
         result = {
             "vertices": scaled_vertices,
             "faces": faces,
