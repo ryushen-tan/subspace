@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 const LeftControlPanel = () => {
   const Motion = motion;
   const objects = useAgentStore((state) => state.objects);
+  const activeObjectId = useAgentStore((state) => state.activeObjectId);
+  const setActiveObject = useAgentStore((state) => state.setActiveObject);
   const toggleObjectVisibility = useAgentStore((state) => state.toggleObjectVisibility);
   const renameObject = useAgentStore((state) => state.renameObject);
   const deleteObject = useAgentStore((state) => state.deleteObject);
@@ -219,7 +221,10 @@ const LeftControlPanel = () => {
               return (
                 <div
                   key={object.id}
-                  className="p-3 bg-neutral-900/50 border border-white/5 rounded-lg hover:bg-neutral-900 transition-colors space-y-2"
+                  className={`p-3 bg-neutral-900/50 border rounded-lg transition-colors space-y-2 cursor-pointer ${
+                    object.id === activeObjectId ? 'border-indigo-500/60 bg-neutral-900' : 'border-white/5 hover:bg-neutral-900'
+                  }`}
+                  onClick={() => setActiveObject(object.id)}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-1 min-w-0">

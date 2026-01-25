@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Grid, PerspectiveCamera, TransformControls } from '@react-three/drei';
 import { PointCloud } from '../components/points/PointCloud';
 import { usePointsStore } from '../state/usePointsStore';
 import { useAgentStore } from '../state/useAgentStore';
@@ -9,24 +9,30 @@ import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
 import WorkspaceBottomBar from '../components/WorkspaceBottomBar';
 
-function MeshSurface({ mesh, pointOverrides, color }) {
+function MeshSurface({ mesh, pointOverrides, color, isActive, onSelect }) {
   const geometry = useMemo(() => buildMeshGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
-    <mesh geometry={geometry}>
-      <meshPhongMaterial color={color || '#4f46e5'} side={THREE.DoubleSide} transparent opacity={0.8} flatShading />
+    <mesh geometry={geometry} onPointerDown={onSelect}>
+      <meshPhongMaterial
+        color={color || '#4f46e5'}
+        side={THREE.DoubleSide}
+        transparent
+        opacity={isActive ? 0.95 : 0.8}
+        emissive={isActive ? '#60a5fa' : '#0f172a'}
+        emissiveIntensity={isActive ? 0.35 : 0.1}
+        flatShading
+      />
     </mesh>
   );
 }
 
-
-
-function MeshEdges({ mesh, pointOverrides }) {
+function MeshEdges({ mesh, pointOverrides, isActive }) {
   const geometry = useMemo(() => buildEdgesGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
   if (!geometry) return null;
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#111827" />
+      <lineBasicMaterial color={isActive ? '#a5b4fc' : '#111827'} />
     </lineSegments>
   );
 }
@@ -81,10 +87,16 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
   const isDragging = usePointsStore((state) => state.isDragging);
   const clearSelection = usePointsStore((state) => state.clearSelection);
   const points = usePointsStore((state) => state.points);
+  const setDragging = usePointsStore((state) => state.setDragging);
   const objects = useAgentStore((state) => state.objects);
+  const activeObjectId = useAgentStore((state) => state.activeObjectId);
+  const setActiveObject = useAgentStore((state) => state.setActiveObject);
+  const clearActiveObject = useAgentStore((state) => state.clearActiveObject);
+  const translateObject = useAgentStore((state) => state.translateObject);
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef(null);
-
+  const activeHandleRef = useRef(new THREE.Object3D());
+  const lastHandlePosRef = useRef(new THREE.Vector3());
   
   const pointOverrides = useMemo(() => {
     const map = new Map();
@@ -92,14 +104,19 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     return map;
   }, [points]);
 
-  const startManualIdle = useCallback(() => {
+  const activeObject = useMemo(
+    () => objects.find((o) => o.id === activeObjectId),
+    [objects, activeObjectId]
+  );
+
+  const startManualIdle = () => {
     // Manually start auto-rotate and stop the idle timer
     setIsIdle(true);
     if (idleTimerRef.current) {
       clearTimeout(idleTimerRef.current);
       idleTimerRef.current = null;
     }
-  }, []);
+  };
 
   // Idle detection - 1 minute (60000ms)
   const startIdleTimer = useCallback(() => {
@@ -154,7 +171,23 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [startManualIdle]);
+  }, []);
+
+  useEffect(() => {
+    if (!activeObject) return;
+    const verts = activeObject.mesh?.vertices || [];
+    if (verts.length === 0) return;
+
+    // Use the first vertex as the gizmo position (corner vertex)
+    const cornerVert = verts[0];
+    const cornerPos = pointOverrides.get(cornerVert.id) || cornerVert.p || [0, 0, 0];
+    const corner = new THREE.Vector3(cornerPos[0], cornerPos[1], cornerPos[2]);
+
+    if (activeHandleRef.current) {
+      activeHandleRef.current.position.copy(corner);
+      lastHandlePosRef.current.copy(corner);
+    }
+  }, [activeObject, pointOverrides]);
   
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0">
@@ -166,6 +199,7 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
           // Clear selection when clicking on empty space (not on a point)
           if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
             clearSelection();
+            clearActiveObject();
           }
         }}
       >
@@ -220,13 +254,62 @@ export function Scene({ isSidebarOpen, onPreviewClick }) {
       {/* Point Cloud */}
       <PointCloud />
 
+      {/* Anchor for object gizmo */}
+      <primitive object={activeHandleRef.current} />
+
       {/* Mesh Surface & Edges */}
-      {objects.map((obj) => (
-        <group key={obj.id} visible={obj.visible}>
-          <MeshSurface mesh={obj.mesh} pointOverrides={pointOverrides} color={obj.color} />
-          <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} />
-        </group>
-      ))}
+      {objects.map((obj) => {
+        const isActive = obj.id === activeObjectId;
+        return (
+          <group
+            key={obj.id}
+            visible={obj.visible}
+            onPointerDown={(e) => {
+              if (e.button !== 0) return;
+              e.stopPropagation();
+              setActiveObject(obj.id);
+            }}
+          >
+            <MeshSurface
+              mesh={obj.mesh}
+              pointOverrides={pointOverrides}
+              color={obj.color}
+              isActive={isActive}
+              onSelect={(e) => {
+                if (e.button !== 0) return;
+                e.stopPropagation();
+                setActiveObject(obj.id);
+              }}
+            />
+            <MeshEdges mesh={obj.mesh} pointOverrides={pointOverrides} isActive={isActive} />
+          </group>
+        );
+      })}
+
+      {/* Object Transform Controls */}
+      {activeObject && (
+        <TransformControls
+          object={activeHandleRef.current}
+          mode="translate"
+          showX
+          showY
+          showZ
+          translationSnap={0.1}
+          onMouseDown={() => setDragging(true)}
+          onMouseUp={() => setDragging(false)}
+          onObjectChange={() => {
+            if (!activeObject || !activeHandleRef.current) return;
+            const current = activeHandleRef.current.position;
+            const last = lastHandlePosRef.current;
+            const dx = current.x - last.x;
+            const dy = current.y - last.y;
+            const dz = current.z - last.z;
+            if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6 && Math.abs(dz) < 1e-6) return;
+            translateObject(activeObject.id, [dx, dy, dz]);
+            lastHandlePosRef.current.copy(current);
+          }}
+        />
+      )}
 
 
 

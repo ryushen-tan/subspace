@@ -236,6 +236,62 @@ export const useAgentStore = create((set, get) => ({
       ),
     })),
 
+  translateObject: (objectId, delta) =>
+    set((state) => {
+      if (!delta || delta.length !== 3) return state;
+      const [dx, dy, dz] = delta;
+      if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6 && Math.abs(dz) < 1e-6) return state;
+
+      const updatedObjects = state.objects.map((obj) => {
+        if (obj.id !== objectId) return obj;
+        const nextVerts = (obj.mesh?.vertices || []).map((v, i) => ({
+          ...v,
+          p: [
+            (v.p?.[0] ?? 0) + dx,
+            (v.p?.[1] ?? 0) + dy,
+            (v.p?.[2] ?? 0) + dz,
+          ],
+          color: v.color || COLORS[i % COLORS.length],
+        }));
+        const nextMesh = { ...obj.mesh, vertices: nextVerts };
+        // Keep point cloud in sync
+        const points = nextVerts.map((v, i) => ({
+          id: v.id,
+          position: v.p,
+          color: COLORS[i % COLORS.length],
+        }));
+        usePointsStore.getState().setPointsForObject(objectId, points);
+        return { ...obj, mesh: nextMesh };
+      });
+
+      const activeUpdated = updatedObjects.find((o) => o.id === state.activeObjectId);
+      return {
+        objects: updatedObjects,
+        mesh: activeUpdated?.mesh || state.mesh,
+      };
+    }),
+
+  setActiveObject: (objectId) => {
+    const target = get().objects.find((obj) => obj.id === objectId);
+    if (!target) return;
+
+    set((state) => {
+      if (state.activeObjectId !== objectId) {
+        usePointsStore.getState().clearSelection();
+      }
+
+      return {
+        activeObjectId: objectId,
+        mesh: target.mesh || state.mesh,
+      };
+    });
+  },
+
+  clearActiveObject: () =>
+    set({
+      activeObjectId: null,
+    }),
+
   deleteObject: (objectId) =>
     set((state) => {
       const remaining = state.objects.filter((obj) => obj.id !== objectId);
