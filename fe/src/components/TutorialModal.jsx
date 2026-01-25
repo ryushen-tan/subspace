@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mouse, Keyboard, Move3D, RotateCw } from 'lucide-react';
+import { Mouse, Keyboard, Move3D, RotateCw, X } from 'lucide-react';
 
 const TutorialModal = ({ isOpen, onClose }) => {
   const [progress, setProgress] = useState(0);
@@ -61,6 +61,12 @@ const TutorialModal = ({ isOpen, onClose }) => {
             <h2 className="text-2xl font-semibold text-white mb-1">Welcome to Subspace</h2>
             <p className="text-sm text-gray-400">Learn the basic controls to get started</p>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Content */}
