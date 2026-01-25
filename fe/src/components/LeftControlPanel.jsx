@@ -85,30 +85,44 @@ const LeftControlPanel = () => {
 
   return (
     <Motion.div
-      initial={{ width: 256 }}
-      animate={{ width: isOpen ? 256 : 64 }}
+      initial={{ height: 48, width: 48 }}
+      animate={{ 
+        height: isOpen ? 700 : 48,
+        width: isOpen ? 320 : 48
+      }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="absolute top-4 left-4 h-[80vh] bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl"
+      className={`absolute top-4 left-4 bg-neutral-950/95 backdrop-blur-md border border-white/10 flex flex-col z-10 overflow-hidden shadow-2xl rounded-2xl ${isOpen ? '' : 'items-center justify-center'}`}
     >
-      {/* Top Bar with Toggle */}
-      <div className={`relative flex items-center border-b border-white/5 ${isOpen ? 'justify-between px-3 py-2.5' : 'justify-center p-2'}`}>
-        {isOpen ? (
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Layers className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-            <span className="font-medium text-gray-200 text-sm truncate">Controls</span>
+      {isOpen ? (
+        <>
+          {/* Top Bar with Toggle */}
+          <div className="relative flex items-center border-b border-white/5 justify-between px-3 py-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Layers className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+              <span className="font-medium text-gray-200 text-sm truncate">Controls</span>
+            </div>
+            <button
+              onClick={togglePanel}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 rotate-90" />
+            </button>
           </div>
-        ) : null}
+        </>
+      ) : (
         <button
           onClick={togglePanel}
-          className={`p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none bg-transparent flex-shrink-0 cursor-pointer ${isOpen ? '' : 'w-full'}`}
+          className="w-full h-full flex items-center justify-center p-2 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
-          {isOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <ChevronRight className="w-4 h-4 rotate-90" />
         </button>
-      </div>
+      )}
 
-      {/* Content Section */}
-      <div className={`flex-1 flex flex-col min-w-[256px] min-h-0 overflow-hidden transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-6">
+      {isOpen && (
+        <>
+          {/* Content Section */}
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-6">
         {/* Advance option Section */}
         <div className="space-y-4">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Advance option</h3>
@@ -299,8 +313,10 @@ const LeftControlPanel = () => {
             })}
           </div>
         </div>
-        </div>
-      </div>
+            </div>
+          </div>
+        </>
+      )}
     </Motion.div>
   );
 };

@@ -37,7 +37,7 @@ const Landing = () => {
                             <a href="#" className="hover:text-white transition-colors flex items-center gap-1">
                                 Resources <ChevronDown size={14} />
                             </a>
-                            <a href="#" className="hover:text-white transition-colors">Pricing</a>
+                            <Link to="/billing" className="hover:text-white transition-colors">Billing</Link>
                         </Motion.nav>
                     </div>
 
