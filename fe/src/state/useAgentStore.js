@@ -718,6 +718,28 @@ export const useAgentStore = create((set, get) => ({
     }
   },
 
+  uploadPhotoFile: async (file, paperSize = 'letter') => {
+    const { sessionId } = get();
+    set({ isLoading: true });
+    try {
+      const response = await agentApi.uploadPhotoFile(file, paperSize, sessionId);
+      set({ isLoading: false });
+      
+      if (response.success) {
+        get().addMeshObject(response.mesh, response.analysis.object_name || 'Photo Model', true);
+        set((s) => ({
+          messages: [...s.messages, { role: 'assistant', content: `Successfully created 3D model from ${file.name}: ${response.analysis.object_name}` }],
+        }));
+      }
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      set({ isLoading: false });
+      set((s) => ({
+        messages: [...s.messages, { role: 'assistant', content: `Error processing photo ${file.name}: ${error.message}` }],
+      }));
+    }
+  },
+
   disconnect: () => {
     agentApi.close();
     set({ isConnected: false, sessionId: null });

@@ -134,6 +134,31 @@ class AgentWebSocket {
 
     return await response.json();
   }
+
+  async uploadPhotoFile(file, paperSize = 'letter', sessionId = null) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    let url = 'http://localhost:8000/agent/upload-photo';
+    const params = new URLSearchParams();
+    params.append('paper_size', paperSize);
+    if (sessionId) {
+      params.append('session_id', sessionId);
+    }
+    url += `?${params.toString()}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
+    }
+
+    return await response.json();
+  }
 }
 
 export const agentApi = new AgentWebSocket();
