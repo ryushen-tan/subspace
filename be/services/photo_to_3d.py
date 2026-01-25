@@ -47,13 +47,19 @@ class PhotoTo3DService:
         # Create prompt for vision analysis
         analysis_prompt = f"""You are analyzing a photo of a physical object placed on {paper_info['name']} paper ({paper_info['width']}mm x {paper_info['height']}mm).
 
-Please analyze this image and provide:
+Analyze the object in detail and break it down into multiple geometric primitives if needed for accuracy.
+
 1. Object identification (what is the object?)
 2. Approximate dimensions relative to the paper (estimate width, depth, height as percentages of paper size)
-3. Shape description (cube, cylinder, sphere, irregular, etc.)
+3. Shape description - if complex, mark as "complex" and provide detailed primitive breakdown
 4. Main features and details visible
-5. Surface characteristics (flat, curved, rough, smooth)
-6. Suggested 3D representation (what basic geometric shapes would represent this object?)
+5. For COMPLEX objects: Break down into 3-10 geometric primitives (cylinders, boxes, spheres, cones) with their relative positions and dimensions
+
+IMPORTANT: For complex objects, provide detailed suggested_primitives array with multiple components. Each primitive should have:
+- type: "cylinder", "rectangular_prism", "sphere", or "cone"
+- dimensions: width/height/depth percentages relative to paper
+- position: x/y/z offset from center in mm
+- description: what part of the object this represents
 
 Respond ONLY with valid JSON in this exact format:
 {{
@@ -69,8 +75,8 @@ Respond ONLY with valid JSON in this exact format:
     "surface_characteristics": "string",
     "suggested_primitives": [
         {{
-            "type": "string",
-            "dimensions": {{"x": number, "y": number, "z": number}},
+            "type": "cylinder|rectangular_prism|sphere|cone",
+            "dimensions": {{"width_percent": number, "height_percent": number, "depth_percent": number}},
             "position": {{"x": number, "y": number, "z": number}},
             "description": "string"
         }}
@@ -237,7 +243,7 @@ Respond ONLY with valid JSON in this exact format:
         import math
         r = min(radius, depth) / 2
         h = height / 2
-        segments = 24  # Increased from 8 to 24 for smoother appearance
+        segments = 48  # High resolution for smooth appearance
         
         vertices = []
         # Bottom circle
@@ -281,9 +287,9 @@ Respond ONLY with valid JSON in this exact format:
         vertices = []
         r = radius / 2
         
-        # Create UV sphere with more segments
-        lat_segments = 16  # Latitude segments
-        lon_segments = 24  # Longitude segments
+        # Create UV sphere with high resolution
+        lat_segments = 24  # Latitude segments (vertical)
+        lon_segments = 32  # Longitude segments (horizontal)
         
         vertex_id = 0
         # Top pole
@@ -347,7 +353,7 @@ Respond ONLY with valid JSON in this exact format:
         import math
         r = radius / 2
         h = height / 2
-        segments = 24  # Increased from 8 to 24 for smoother appearance
+        segments = 48  # High resolution for smooth appearance
         
         vertices = []
         
@@ -379,13 +385,14 @@ Respond ONLY with valid JSON in this exact format:
     def _create_composite_mesh(self, analysis: dict, scale: float) -> Mesh:
         """Create a composite mesh from multiple primitives in the analysis"""
         primitives = analysis.get("suggested_primitives", [])
+        paper_info = analysis.get("paper_dimensions", self.PAPER_SIZES["letter"])
         
-        if not primitives:
-            # Fallback to rectangular prism
-            width = analysis["estimated_dimensions"]["width_percent"] / 100 * 2
-            depth = analysis["estimated_dimensions"]["depth_percent"] / 100 * 2
-            height = analysis["estimated_dimensions"]["height_percent"] / 100 * 2
-            return self._create_rectangular_prism(width, depth, height)
+        if not primitives or len(primitives) < 2:
+            # Fallback to simple shape
+            width_mm = (analysis["estimated_dimensions"]["width_percent"] / 100) * paper_info["width"]
+            depth_mm = (analysis["estimated_dimensions"]["depth_percent"] / 100) * paper_info["height"]
+            height_mm = (analysis["estimated_dimensions"]["height_percent"] / 100) * paper_info["width"]
+            return self._create_rectangular_prism(width_mm * scale, depth_mm * scale, height_mm * scale)
         
         all_vertices = []
         all_faces = []
@@ -393,20 +400,26 @@ Respond ONLY with valid JSON in this exact format:
         vertex_offset = 0
         
         for i, prim in enumerate(primitives):
-            prim_type = prim.get("type", "cube")
-            dims = prim.get("dimensions", {"x": 1, "y": 1, "z": 1})
+            prim_type = prim.get("type", "rectangular_prism")
+            dims = prim.get("dimensions", {"width_percent": 10, "height_percent": 10, "depth_percent": 10})
             pos = prim.get("position", {"x": 0, "y": 0, "z": 0})
             
-            width = dims.get("x", 1) * scale
-            depth = dims.get("y", 1) * scale
-            height = dims.get("z", 1) * scale
+            # Convert percentage dimensions to actual size
+            width_mm = (dims.get("width_percent", 10) / 100) * paper_info["width"]
+            height_mm = (dims.get("height_percent", 10) / 100) * paper_info["width"]
+            depth_mm = (dims.get("depth_percent", 10) / 100) * paper_info["height"]
             
+            width = width_mm * scale
+            height = height_mm * scale
+            depth = depth_mm * scale
+            
+            # Position offsets in mm
             offset_x = pos.get("x", 0) * scale
             offset_y = pos.get("y", 0) * scale
             offset_z = pos.get("z", 0) * scale
             
             # Create primitive mesh
-            if prim_type == "cube" or prim_type == "rectangular_prism":
+            if prim_type == "rectangular_prism" or prim_type == "cube":
                 prim_mesh = self._create_rectangular_prism(width, depth, height)
             elif prim_type == "cylinder":
                 prim_mesh = self._create_cylinder(width, height, depth)
