@@ -47,21 +47,21 @@ const ProductTeaser = () => {
         },
       });
 
-      // Cards stagger animation
+      // Cards stagger animation - trigger earlier and faster
       const cards = cardsRef.current.querySelectorAll('.feature-card');
-      gsap.set(cards, { opacity: 0, y: 40, scale: 0.95 });
+      gsap.set(cards, { opacity: 0, y: 30, scale: 0.95 });
 
       ScrollTrigger.create({
         trigger: cardsRef.current,
-        start: 'top 70%',
+        start: 'top 80%', // Appear earlier
         onEnter: () => {
           gsap.to(cards, {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: 0.8,
-            stagger: 0.15,
-            ease: 'power3.out',
+            duration: 0.2, // Very snappy
+            stagger: 0.06,
+            ease: 'power2.out',
           });
         },
       });
