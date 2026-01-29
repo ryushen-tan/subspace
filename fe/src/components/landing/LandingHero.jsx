@@ -12,7 +12,6 @@ gsap.registerPlugin(ScrollTrigger);
 const LandingHero = () => {
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
-  const subtitleRef = useRef(null);
   const taglineRef = useRef(null);
   const scrollIndicatorRef = useRef(null);
   const threeContainerRef = useRef(null);
@@ -33,7 +32,7 @@ const LandingHero = () => {
       });
 
       // Text animations
-      gsap.set([titleRef.current, subtitleRef.current, taglineRef.current], {
+      gsap.set([titleRef.current, taglineRef.current], {
         opacity: 0,
         y: 60,
       });
@@ -47,18 +46,12 @@ const LandingHero = () => {
         duration: 1.4,
         ease: 'power3.out',
       })
-        .to(subtitleRef.current, {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: 'power3.out',
-        }, '-=0.9')
         .to(taglineRef.current, {
           opacity: 1,
           y: 0,
           duration: 1,
           ease: 'power3.out',
-        }, '-=0.7')
+        }, '-=0.9')
         .to(scrollIndicatorRef.current, {
           opacity: 0.5,
           y: 0,
@@ -74,7 +67,7 @@ const LandingHero = () => {
         scrub: 1,
         onUpdate: (self) => {
           const progress = self.progress;
-          gsap.to([titleRef.current, subtitleRef.current, taglineRef.current], {
+          gsap.to([titleRef.current, taglineRef.current], {
             opacity: 1 - progress * 1.5,
             y: progress * -60,
             duration: 0.1,
@@ -168,12 +161,6 @@ const LandingHero = () => {
               >
                 mibu
               </h1>
-              <p
-                ref={subtitleRef}
-                className="mt-4 font-mono text-xl sm:text-2xl tracking-[0.3em] text-[#ffb6c1]/40"
-              >
-                ミブラボラトリ
-              </p>
             </div>
 
             {/* Divider */}
@@ -215,12 +202,7 @@ const LandingHero = () => {
         </div>
       </div>
 
-      {/* Vertical Japanese Text */}
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 hidden xl:block">
-        <p className="vertical-rl font-mono text-xs tracking-[0.5em] text-[#ffb6c1]/20">
-          桜 · 空間 · 知能
-        </p>
-      </div>
+
 
       {/* Scroll Indicator with pink glow */}
       <button

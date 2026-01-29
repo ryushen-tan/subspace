@@ -72,8 +72,11 @@ const MissionSection = () => {
       ref={sectionRef}
       className="relative min-h-screen w-full flex items-center bg-[#050505] overflow-hidden"
     >
-      {/* Grid background */}
-      <div className="absolute inset-0 grid-bg opacity-30" />
+      {/* Grid background with dither */}
+      <div className="absolute inset-0 dither-grid opacity-20" />
+      
+      {/* Halftone overlay */}
+      <div className="absolute inset-0 halftone-overlay opacity-30" />
 
       {/* Decorative lines */}
       <div className="absolute left-1/4 top-0 bottom-0 line-dashed-vertical hidden lg:block" />

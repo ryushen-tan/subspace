@@ -75,8 +75,9 @@ const ProductTeaser = () => {
       ref={sectionRef}
       className="relative min-h-screen w-full flex items-center bg-[#0a0a0a] overflow-hidden"
     >
-      {/* Background pattern */}
-      <div className="absolute inset-0 grid-bg opacity-20" />
+      {/* Dither background */}
+      <div className="absolute inset-0 dither-grid opacity-15" />
+      <div className="absolute inset-0 halftone-overlay opacity-20" />
 
       {/* Vertical Japanese text */}
       <div className="absolute left-8 top-1/2 -translate-y-1/2 hidden lg:block">
@@ -90,7 +91,6 @@ const ProductTeaser = () => {
         <div ref={titleRef} className="mb-20">
           <p className="font-mono text-sm tracking-widest text-white/40 mb-4">OUR FIRST PRODUCT</p>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-white">su3</h2>
-          <p className="font-mono text-lg text-[#ffb6c1]/40 mt-2">スペースユー</p>
         </div>
 
         {/* Product description */}

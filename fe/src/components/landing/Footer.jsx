@@ -16,8 +16,12 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative bg-[#050505] border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+    <footer className="relative bg-[#050505] border-t border-white/10 overflow-hidden">
+      {/* Dither background */}
+      <div className="absolute inset-0 dither-grid opacity-10" />
+      <div className="absolute inset-0 halftone-overlay opacity-20" />
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 py-16">
         <div className="grid md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-2">
@@ -27,9 +31,7 @@ const Footer = () => {
             <p className="text-white/40 font-light text-sm max-w-xs mb-6">
               Frontier research at the intersection of space and intelligence.
             </p>
-            <p className="font-mono text-xs text-[#ffb6c1]/20 tracking-widest">
-              ミブラボラトリ
-            </p>
+
           </div>
 
           {/* Links */}

@@ -6,13 +6,19 @@ const NoiseOverlay = () => {
           <filter id="noiseFilter">
             <feTurbulence
               type="fractalNoise"
-              baseFrequency="0.8"
+              baseFrequency="0.85"
               numOctaves="4"
               stitchTiles="stitch"
             />
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="0.5" intercept="0.5" />
+              <feFuncG type="linear" slope="0.3" intercept="0.35" />
+              <feFuncB type="linear" slope="0.4" intercept="0.4" />
+            </feComponentTransfer>
           </filter>
         </defs>
-        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" opacity="0.4" />
       </svg>
     </div>
   );

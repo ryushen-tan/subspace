@@ -78,8 +78,11 @@ const ResearchPreview = () => {
       ref={sectionRef}
       className="relative min-h-screen w-full flex items-center bg-[#050505] overflow-hidden"
     >
-      {/* Background */}
-      <div className="absolute inset-0 grid-bg opacity-30" />
+      {/* Dither background */}
+      <div className="absolute inset-0 dither-grid opacity-15" />
+      
+      {/* Dense dither overlay */}
+      <div className="absolute inset-0 halftone-overlay opacity-25" />
 
       {/* Vertical Japanese text */}
       <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden lg:block">
