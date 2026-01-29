@@ -2,7 +2,9 @@
 __pycache__/
 *.py[codz]
 *$py.class
-
+/pb_data
+pb_data/
+pocketbase/
 # C extensions
 *.so
 
