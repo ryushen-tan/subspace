@@ -14,9 +14,9 @@ const BlogCard = ({ post }) => {
   return (
     <Link
       to={`/research/${post.slug}`}
-      className="group block"
+      className="group block h-full"
     >
-      <article className="h-full p-6 border border-white/10 bg-white/[0.02]
+      <article className="h-full flex flex-col p-6 border border-white/10 bg-white/[0.02]
                         hover:border-white/20 hover:bg-white/[0.04]
                         transition-all duration-500"
       >
@@ -34,13 +34,13 @@ const BlogCard = ({ post }) => {
           {post.title}
         </h3>
 
-        {/* Excerpt */}
-        <p className="text-white/40 font-light text-sm leading-relaxed mb-6 line-clamp-3">
+        {/* Excerpt - flex-grow to push footer down */}
+        <p className="text-white/40 font-light text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
           {post.excerpt}
         </p>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+        {/* Footer - always at bottom */}
+        <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
           <span className="font-mono text-xs text-white/30">{post.date}</span>
           <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/60
                                   transition-colors" />

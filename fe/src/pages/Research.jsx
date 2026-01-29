@@ -180,9 +180,9 @@ const Research = () => {
       <main className="px-6 lg:px-12 py-12">
         <div className="max-w-7xl mx-auto">
           {filteredPosts.length > 0 ? (
-            <div ref={gridRef} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div ref={gridRef} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {filteredPosts.map((post) => (
-                <div key={post.slug} className="research-card">
+                <div key={post.slug} className="research-card h-full">
                   <BlogCard post={post} />
                 </div>
               ))}
