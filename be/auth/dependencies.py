@@ -16,11 +16,15 @@ Architecture:
 - Auth logic is centralized and reusable
 
 Usage:
-    from auth.dependencies import get_current_user
-    
+    from auth.dependencies import get_current_user, require_min_tier
+
     @app.get("/api/protected")
     async def protected_route(user: dict = Depends(get_current_user)):
-        return {"user_id": user["id"], "email": user["email"]}
+        return {"user_id": user["id"], "email": user["email"], "tier": user.get("tier", 0)}
+
+    @app.get("/api/premium-only")
+    async def premium_route(user: dict = Depends(require_min_tier(2))):
+        ...
 """
 
 import os
@@ -69,7 +73,7 @@ async def verify_pocketbase_token(token: str) -> dict:
                 data = response.json()
                 record = data.get('record', {})
                 
-                # Return user data from PocketBase response
+                # Return user data from PocketBase response (includes tier: 0=free, 1/2/3=paid)
                 return {
                     'id': record.get('id'),
                     'email': record.get('email'),
@@ -77,6 +81,7 @@ async def verify_pocketbase_token(token: str) -> dict:
                     'verified': record.get('verified', False),
                     'created': record.get('created', ''),
                     'updated': record.get('updated', ''),
+                    'tier': record.get('tier', 0),
                 }
             elif response.status_code == 401:
                 raise HTTPException(
@@ -100,6 +105,27 @@ async def verify_pocketbase_token(token: str) -> dict:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Failed to connect to PocketBase: {str(e)}"
         )
+
+
+def require_min_tier(min_tier: int):
+    """
+    Dependency factory: require the current user to have at least the given paid tier.
+    tier: 0 = free, 1 = lowest paid, 2 = middle, 3 = highest.
+
+    Usage:
+        @app.get("/api/premium-only")
+        async def premium_route(user: dict = Depends(require_min_tier(2))):
+            ...
+    """
+    async def _require(user: dict = Depends(get_current_user)) -> dict:
+        tier = user.get("tier", 0) or 0
+        if tier < min_tier:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"This endpoint requires at least tier {min_tier}. Your tier: {tier}.",
+            )
+        return user
+    return _require
 
 
 async def get_current_user(

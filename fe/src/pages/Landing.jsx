@@ -1,11 +1,21 @@
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import BackgroundScene from "../components/BackgroundScene";
+import { useAuthStore } from "../state/useAuthStore";
 
 const Landing = () => {
     const Motion = motion;
+    const navigate = useNavigate();
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const user = useAuthStore((s) => s.user);
+    const logout = useAuthStore((s) => s.logout);
+
+    const handleSignOut = () => {
+        logout();
+        navigate('/');
+    };
     return (
         <div className="relative w-full h-screen overflow-hidden text-white font-sans selection:bg-white selection:text-black">
             <BackgroundScene />
@@ -47,8 +57,25 @@ const Landing = () => {
                         transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
                         className="flex items-center gap-6"
                     >
-                         <Link to="/login" className="hidden md:block text-sm font-medium hover:text-gray-300 transition-colors">Sign In</Link>
-                         <Link 
+                        {isAuthenticated ? (
+                            <>
+                                <span className="hidden md:block text-sm text-gray-400 truncate max-w-[140px]" title={user?.email}>
+                                    {user?.name || user?.email?.split('@')[0] || 'Account'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleSignOut}
+                                    className="hidden md:block text-sm font-medium hover:text-gray-300 transition-colors"
+                                >
+                                    Sign Out
+                                </button>
+                            </>
+                        ) : (
+                            <Link to="/login" className="hidden md:block text-sm font-medium hover:text-gray-300 transition-colors">
+                                Sign In
+                            </Link>
+                        )}
+                        <Link 
                             to="/edit"
                             className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-200 transition-colors duration-300 flex items-center gap-2"
                         >

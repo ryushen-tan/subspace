@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
-import { Link } from "react-router-dom";
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, ArrowLeft } from 'lucide-react';
 import BackgroundScene from "../components/BackgroundScene";
+import { useAuthStore } from "../state/useAuthStore";
+import { TIER_FREE, TIER_1, TIER_2, TIER_3 } from "../constants/tiers";
 
 const Billing = () => {
     const Motion = motion;
+    const navigate = useNavigate();
     const [selectedTier, setSelectedTier] = useState(null);
+    const getTier = useAuthStore((s) => s.getTier);
+    const user = useAuthStore((s) => s.user);
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const logout = useAuthStore((s) => s.logout);
 
+    // Normalize to number so comparison works (PocketBase may return string)
+    const currentTier = useMemo(() => {
+        const t = getTier?.() ?? user?.tier ?? TIER_FREE;
+        return typeof t === 'number' ? t : Number(t) || TIER_FREE;
+    }, [getTier, user?.tier]);
+
+    const handleSignOut = () => {
+        logout();
+        navigate('/');
+    };
+
+    /** 3 paid tiers: Tier 1 (lowest), Tier 2 (middle), Tier 3 (highest). Free = tier 0. */
     const tiers = [
         {
+            tierValue: TIER_FREE,
             name: "Free",
             price: "$0",
             period: "forever",
@@ -24,28 +44,29 @@ const Billing = () => {
             highlight: false
         },
         {
-            name: "Sub Designer",
+            tierValue: TIER_1,
+            name: "Sub",
             price: "$0.01",
             period: "per month",
-            description: "For serious designers",
+            description: "Lowest paid — for getting serious",
             features: [
                 "Everything in Free",
                 "Unlimited projects",
                 "Advanced mesh tools",
                 "Priority support",
-                "Custom color palettes",
                 "High-res exports"
             ],
             cta: "Start Free Trial",
             highlight: true
         },
         {
+            tierValue: TIER_2,
             name: "Sub+",
             price: "$0.99",
             period: "per month",
-            description: "Professional workflow",
+            description: "Middle tier — professional workflow",
             features: [
-                "Everything in Sub Designer",
+                "Everything in Tier 1",
                 "AI-powered suggestions",
                 "Collaboration tools",
                 "Version history",
@@ -56,12 +77,13 @@ const Billing = () => {
             highlight: false
         },
         {
+            tierValue: TIER_3,
             name: "Sub++",
             price: "$9.99",
             period: "per month",
-            description: "Enterprise-grade power",
+            description: "Highest tier — maximum power",
             features: [
-                "Everything in Sub+",
+                "Everything in Tier 2",
                 "Unlimited cloud storage",
                 "Advanced analytics",
                 "Dedicated support",
@@ -92,6 +114,24 @@ const Billing = () => {
                     </Link>
                     
                     <div className="flex items-center gap-6">
+                        {isAuthenticated ? (
+                            <>
+                                <span className="hidden sm:block text-sm text-gray-400 truncate max-w-[140px]" title={user?.email}>
+                                    {user?.name || user?.email?.split('@')[0] || 'Account'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleSignOut}
+                                    className="text-sm font-medium hover:text-gray-300 transition-colors"
+                                >
+                                    Sign Out
+                                </button>
+                            </>
+                        ) : (
+                            <Link to="/login" className="text-sm font-medium hover:text-gray-300 transition-colors">
+                                Sign In
+                            </Link>
+                        )}
                         <Link 
                             to="/edit"
                             className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-200 transition-colors duration-300"
@@ -126,15 +166,23 @@ const Billing = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
                                 className={`relative bg-neutral-950/60 backdrop-blur-md border rounded-2xl p-6 flex flex-col ${
-                                    tier.highlight 
-                                        ? 'border-white/30 shadow-2xl scale-105' 
-                                        : 'border-white/10 hover:border-white/20'
+                                    currentTier === tier.tierValue
+                                        ? 'border-indigo-500 ring-2 ring-indigo-500/50 shadow-lg shadow-indigo-500/20'
+                                        : tier.highlight 
+                                            ? 'border-white/30 shadow-2xl scale-105' 
+                                            : 'border-white/10 hover:border-white/20'
                                 } transition-all duration-300 cursor-pointer`}
                                 onClick={() => setSelectedTier(tier.name)}
+                                data-current={currentTier === tier.tierValue}
                             >
                                 {tier.highlight && (
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                         Popular
+                                    </div>
+                                )}
+                                {currentTier === tier.tierValue && (
+                                    <div className="absolute -top-3 right-4 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                                        Your plan
                                     </div>
                                 )}
                                 

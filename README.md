@@ -78,7 +78,7 @@ cd ./be
 
 # Activate the venv (if not already active)
 source venv/bin/activate
-
+venv\Scripts\activate (windows)
 # Option A1: Run with auto-reload via uvicorn
 uvicorn main:app --reload --port 8000
 
@@ -100,6 +100,7 @@ npm run dev
 - CORS is currently permissive in [be/main.py](be/main.py) and allows all origins for local dev.
 - The frontend’s agent API client defaults to `http://localhost:8000` and `ws://localhost:8000` (see [fe/src/services/agentApi.js](fe/src/services/agentApi.js)). No `.env` variables are required for the API in the current setup.
 - PocketBase uses the local [pb_data](pb_data) directory when you run `pocketbase serve` from the repo root.
+- **User tiers (paid plans):** The app uses 3 paid tiers (1 = lowest, 2 = middle, 3 = highest) stored on the PocketBase `users` collection. See [docs/pocketbase-schema.md](docs/pocketbase-schema.md) for adding the `tier` field.
 
 ## Typical Development Workflow
 - Start PocketBase first, then Backend, then Frontend.

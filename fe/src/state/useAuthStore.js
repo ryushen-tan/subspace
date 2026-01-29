@@ -1,10 +1,14 @@
 import { create } from 'zustand';
-import { pb } from '../lib/pocketbase';
+import { pb } from '../services/pocketbase';
+import { TIER_FREE } from '../constants/tiers';
 
 export const useAuthStore = create((set, get) => ({
   user: pb.authStore.model,
   token: pb.authStore.token,
   isAuthenticated: pb.authStore.isValid,
+
+  /** Current user's paid tier: 0 = free, 1 = lowest, 2 = middle, 3 = highest (from user.tier) */
+  getTier: () => get().user?.tier ?? TIER_FREE,
 
   // Initialize: sync with PocketBase auth store
   init: () => {
