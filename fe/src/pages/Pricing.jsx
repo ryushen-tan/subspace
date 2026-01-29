@@ -112,7 +112,6 @@ const Pricing = () => {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-white mb-4">
             Simple, transparent pricing
           </h1>
-          <p className="font-mono text-lg text-white/30">料金</p>
 
           <div className="max-w-2xl mx-auto mt-8">
             <p className="text-lg text-white/50 font-light">
@@ -144,7 +143,7 @@ const Pricing = () => {
               <h2 className="text-3xl sm:text-4xl font-light text-white mb-4">
                 Questions?
               </h2>
-              <p className="font-mono text-lg text-white/30 mb-8">よくある質問</p>
+
               <p className="text-white/50 font-light">
                 Can't find what you're looking for? Our team is happy to help.
               </p>
