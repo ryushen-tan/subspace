@@ -14,7 +14,6 @@ const Pricing = () => {
   const tiers = [
     {
       name: 'Individual',
-      japaneseName: '個人',
       description: 'Perfect for researchers, students, and hobbyists exploring spatial AI.',
       price: 'Free',
       period: 'forever',
@@ -30,7 +29,6 @@ const Pricing = () => {
     },
     {
       name: 'Team',
-      japaneseName: 'チーム',
       description: 'For small teams and startups building spatial AI applications.',
       price: '$29',
       period: '/user/month',
@@ -50,7 +48,6 @@ const Pricing = () => {
     },
     {
       name: 'Enterprise',
-      japaneseName: '企業',
       description: 'Custom solutions for organizations with advanced spatial AI needs.',
       price: 'Custom',
       period: '',

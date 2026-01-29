@@ -24,9 +24,6 @@ const PricingCard = ({ tier }) => {
         {/* Header */}
         <div className="mb-8">
           <h3 className="text-2xl font-light text-white mb-2">{tier.name}</h3>
-          <p className="font-mono text-xs text-white/40 tracking-widest mb-4">
-            {tier.japaneseName}
-          </p>
           <p className="text-white/50 text-sm font-light line-clamp-2">
             {tier.description}
           </p>

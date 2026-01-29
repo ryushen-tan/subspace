@@ -133,7 +133,7 @@ const Research = () => {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-white">
                 From our lab
               </h1>
-              <p className="font-mono text-lg text-white/30 mt-2">研究</p>
+
             </div>
 
             {/* Search */}
