@@ -206,7 +206,7 @@ const CherryBlossomPointCloud = ({ scrollProgress = 0 }) => {
     return geo;
   }, []);
 
-  // Material with gradients
+  // Material
   const material = useMemo(() => {
     return createGradientDitherMaterial(2.2);
   }, []);

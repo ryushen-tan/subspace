@@ -97,24 +97,45 @@ export const GradientDitherShader = {
     varying float vDepth;
     varying float vSize;
     
+    // 8x8 Bayer matrix - more visible dither
+    float dither8(vec2 pos) {
+      return fract(dot(floor(pos), vec2(1.0, 7.0)) * 0.125);
+    }
+    
     void main() {
       vec2 center = gl_PointCoord - vec2(0.5);
       float dist = length(center);
       
-      // Soft circular shape
-      float alpha = 1.0 - smoothstep(0.4, 0.5, dist);
+      // Harder edge for pixelated look
+      float edgeThreshold = 0.48;
+      float alpha = 1.0 - step(edgeThreshold, dist);
       
-      // Depth fade
+      // Aggressive dithering - visible pixel pattern
+      float dither = dither8(gl_FragCoord.xy);
+      
+      // Create dot pattern based on distance and pixel position
+      float pattern = step(dither, dist < 0.3 ? 1.0 : 0.7);
+      
+      // Pixelated edge - dots become transparent toward edge
+      float dots = step(dither + 0.2, 0.5 - dist);
+      
+      // Combine - either full alpha in center, dithered at edges
+      float ditherAlpha = mix(dots, pattern, 0.5);
+      alpha = alpha * ditherAlpha;
+      
+      // Depth fade with dithering
       float depthFade = smoothstep(80.0, 0.0, vDepth * 0.08);
       
-      // Size affects softness
-      float softEdge = 1.0 - smoothstep(0.3, 0.5, dist) * (1.0 - vSize * 0.3);
+      // Color with dither variation
+      float colorDither = fract(dither * 1.5) * 0.15;
+      vec3 ditherColor = vColor * (1.0 - colorDither);
       
-      // Add slight pink glow from center
-      vec3 glowColor = vec3(1.0, 0.7, 0.75) * uPinkGlow;
-      vec3 finalColor = vColor + glowColor * (1.0 - dist);
+      // Pixelated pink glow
+      float glowDither = step(dither, 0.5) * (1.0 - dist * 2.0);
+      vec3 glowColor = vec3(1.0, 0.7, 0.75) * uPinkGlow * glowDither;
+      vec3 finalColor = mix(ditherColor, glowColor, glowDither * uPinkGlow * 2.0);
       
-      gl_FragColor = vec4(finalColor, uOpacity * alpha * depthFade * softEdge);
+      gl_FragColor = vec4(finalColor, uOpacity * alpha * depthFade);
     }
   `,
 };
@@ -152,17 +173,27 @@ export const PetalShader = {
     uniform vec3 uPink;
     varying float vScale;
     
+    // Bayer dither
+    float bayer4(vec2 pos) {
+      return fract(dot(pos, vec2(0.5, 0.3)) + sin(pos.x * 0.1 + pos.y * 0.2) * 0.5);
+    }
+    
     void main() {
       vec2 center = gl_PointCoord - vec2(0.5);
       float dist = length(center);
       
       if (dist > 0.5) discard;
       
-      // Soft petal-like shape
+      // Dithered petal shape
       float alpha = 1.0 - smoothstep(0.25, 0.5, dist);
       
-      // Soft pink color with variation
-      vec3 color = mix(vec3(1.0, 0.9, 0.92), uPink, vScale * 0.5);
+      // Apply dither
+      float dither = bayer4(gl_FragCoord.xy);
+      alpha = step(dither * 0.4, alpha);
+      
+      // Dithered pink color
+      vec3 baseColor = mix(vec3(1.0, 0.9, 0.92), uPink, vScale * 0.5);
+      vec3 color = baseColor * (0.95 + dither * 0.1);
       
       gl_FragColor = vec4(color, alpha * 0.5 * (0.3 + vScale * 0.7));
     }
