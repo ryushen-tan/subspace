@@ -5,7 +5,7 @@ import { Play } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const YOUTUBE_VIDEO_ID = 'kqVdI1VHy24';
+const YOUTUBE_VIDEO_ID = 'Rx1JxwD1Kc8';
 const EMBED_URL = `https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?rel=0&modestbranding=1`;
 
 const VideoDemoPreview = () => {
