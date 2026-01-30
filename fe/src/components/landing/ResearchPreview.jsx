@@ -101,7 +101,7 @@ const ResearchPreview = () => {
 
           <Link
             to="/research"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors group cursor-pointer"
           >
             View all research
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -114,7 +114,7 @@ const ResearchPreview = () => {
             <Link
               key={post.title}
               to="/research"
-              className="post-card block group"
+              className="post-card block group cursor-pointer"
             >
               <div className="flex items-center gap-4 sm:gap-8 py-8 border-b border-white/10
                             hover:bg-white/[0.02] hover:border-[#ffb6c1]/20 hover:pl-2 transition-all px-4 -mx-4">

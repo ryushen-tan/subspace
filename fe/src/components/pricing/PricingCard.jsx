@@ -56,7 +56,7 @@ const PricingCard = ({ tier }) => {
 
         {/* CTA */}
         <button
-          className={`w-full py-4 flex items-center justify-center gap-2
+          className={`w-full py-4 flex items-center justify-center gap-2 cursor-pointer
                      text-sm font-medium tracking-wider transition-all duration-300
                      group/btn ${
                        isHighlighted

@@ -108,29 +108,29 @@ const LandingHero = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 lg:px-12 py-6">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors">
+          <Link to="/" className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors cursor-pointer">
             mibu
           </Link>
           <div className="flex items-center gap-8">
-            <Link to="/su3" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors">
+            <Link to="/su3" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               su3
             </Link>
-            <Link to="/research" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors">
+            <Link to="/research" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               Research
             </Link>
-            <Link to="/pricing" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors">
+            <Link to="/pricing" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               Pricing
             </Link>
             {isAuthenticated ? (
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors"
+                className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
               >
                 Sign out
               </button>
             ) : (
-              <Link to="/login" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors">
+              <Link to="/login" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
                 Sign in
               </Link>
             )}

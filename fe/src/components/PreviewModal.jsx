@@ -56,7 +56,7 @@ const PreviewModal = ({ isOpen, onClose }) => {
             <h2 className="text-xl font-semibold text-white">Preview Generator</h2>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+              className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -101,7 +101,7 @@ const PreviewModal = ({ isOpen, onClose }) => {
                 <button
                   onClick={handleManualCapture}
                   disabled={isCapturing}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Camera className="w-4 h-4" />
                   Capture Preview
@@ -111,13 +111,13 @@ const PreviewModal = ({ isOpen, onClose }) => {
                 <>
                   <button
                     onClick={() => setCapturedImage(null)}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors cursor-pointer"
                   >
                     Retake
                   </button>
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     Save Image

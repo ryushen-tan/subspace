@@ -356,7 +356,7 @@ export default function PreviewScene({ backgroundUrl, onCapture, shouldCapture }
       {isGLB && (
         <button
           onClick={() => setShowDebug(!showDebug)}
-          className="absolute top-4 right-4 px-3 py-1 bg-neutral-800/80 text-white text-xs rounded hover:bg-neutral-700/80 z-10"
+          className="absolute top-4 right-4 px-3 py-1 bg-neutral-800/80 text-white text-xs rounded hover:bg-neutral-700/80 z-10 cursor-pointer"
         >
           {showDebug ? 'Hide' : 'Show'} Debug
         </button>

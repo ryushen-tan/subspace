@@ -59,7 +59,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
       <div className="flex border-b border-white/10">
         <button
           onClick={() => setActiveTab('image')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
             activeTab === 'image'
               ? 'bg-neutral-800 text-white border-b-2 border-indigo-500'
               : 'text-gray-400 hover:text-white hover:bg-neutral-800/50'
@@ -70,7 +70,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
         </button>
         <button
           onClick={() => setActiveTab('3d')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
             activeTab === '3d'
               ? 'bg-neutral-800 text-white border-b-2 border-indigo-500'
               : 'text-gray-400 hover:text-white hover:bg-neutral-800/50'
@@ -97,7 +97,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
                   <button
                     key={bg}
                     onClick={() => onSelectBackground(bg)}
-                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                       isImageSelected && selectedBackground === bg
                         ? 'border-indigo-500 ring-2 ring-indigo-500/50'
                         : 'border-white/10 hover:border-white/20'
@@ -137,7 +137,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
                   <button
                     key={glb}
                     onClick={() => handleSelect3D(glb)}
-                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all bg-neutral-800 flex items-center justify-center ${
+                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all bg-neutral-800 flex items-center justify-center cursor-pointer ${
                       isSelected
                         ? 'border-indigo-500 ring-2 ring-indigo-500/50'
                         : 'border-white/10 hover:border-white/20'

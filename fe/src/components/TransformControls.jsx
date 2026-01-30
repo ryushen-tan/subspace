@@ -135,7 +135,7 @@ const TransformControls = ({ objectId }) => {
       <div className="bg-neutral-900/50 border border-white/5 rounded-lg overflow-hidden">
         <button
           onClick={() => setExpandedSection(expandedSection === 'position' ? null : 'position')}
-          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors"
+          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors cursor-pointer"
         >
           <Move3D className="w-4 h-4 text-blue-400 flex-shrink-0" />
           <span className="text-sm font-medium text-gray-300">Position</span>
@@ -167,7 +167,7 @@ const TransformControls = ({ objectId }) => {
       <div className="bg-neutral-900/50 border border-white/5 rounded-lg overflow-hidden">
         <button
           onClick={() => setExpandedSection(expandedSection === 'rotation' ? null : 'rotation')}
-          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors"
+          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors cursor-pointer"
         >
           <RotateCw className="w-4 h-4 text-orange-400 flex-shrink-0" />
           <span className="text-sm font-medium text-gray-300">Rotation (°)</span>
@@ -201,7 +201,7 @@ const TransformControls = ({ objectId }) => {
       <div className="bg-neutral-900/50 border border-white/5 rounded-lg overflow-hidden">
         <button
           onClick={() => setExpandedSection(expandedSection === 'scale' ? null : 'scale')}
-          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors"
+          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors cursor-pointer"
         >
           <Maximize2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span className="text-sm font-medium text-gray-300">Scale</span>

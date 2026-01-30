@@ -125,7 +125,7 @@ const ProductTeaser = () => {
             to="/su3"
             className="inline-flex items-center gap-3 px-8 py-4 border border-[#ffb6c1]/30
                       text-white font-medium tracking-wider hover:bg-[#ffb6c1]/10 hover:text-white
-                      hover:border-[#ffb6c1]/50 pink-hover transition-all duration-300 group"
+                      hover:border-[#ffb6c1]/50 pink-hover transition-all duration-300 group cursor-pointer"
           >
             TRY SU3
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

@@ -14,7 +14,7 @@ const BlogCard = ({ post }) => {
   return (
     <Link
       to={`/research/${post.slug}`}
-      className="group block h-full"
+      className="group block h-full cursor-pointer"
     >
       <article className="h-full flex flex-col p-6 border border-white/10 bg-white/[0.02]
                         hover:border-white/20 hover:bg-white/[0.04]

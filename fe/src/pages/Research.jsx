@@ -110,14 +110,14 @@ const Research = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 lg:px-12 py-6">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-light text-white tracking-tight">
+          <Link to="/" className="text-xl font-light text-white tracking-tight cursor-pointer">
             mibu
           </Link>
           <div className="flex items-center gap-8">
-            <Link to="/su3" className="text-sm text-white/60 hover:text-white transition-colors">
+            <Link to="/su3" className="text-sm text-white/60 hover:text-white transition-colors cursor-pointer">
               su3
             </Link>
-            <Link to="/pricing" className="text-sm text-white/60 hover:text-white transition-colors">
+            <Link to="/pricing" className="text-sm text-white/60 hover:text-white transition-colors cursor-pointer">
               Pricing
             </Link>
           </div>
@@ -162,7 +162,7 @@ const Research = () => {
               <button
                 key={cat}
                 onClick={() => setActiveFilter(cat)}
-                className={`px-3 py-1.5 text-sm font-mono tracking-wider transition-colors
+                className={`px-3 py-1.5 text-sm font-mono tracking-wider transition-colors cursor-pointer
                           whitespace-nowrap ${
                             activeFilter === cat
                               ? 'bg-white/10 text-white'

@@ -55,32 +55,32 @@ const Login = () => {
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors"
+            className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors cursor-pointer"
           >
             mibu
           </Link>
           <div className="flex items-center gap-8">
             <Link
               to="/su3"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors"
+              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
             >
               su3
             </Link>
             <Link
               to="/research"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors"
+              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
             >
               Research
             </Link>
             <Link
               to="/pricing"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors"
+              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
             >
               Pricing
             </Link>
             <Link
               to="/signup"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors"
+              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
             >
               Sign up
             </Link>
@@ -159,7 +159,7 @@ const Login = () => {
                 className="w-full py-4 flex items-center justify-center gap-2
                          border border-white/20 text-white font-medium tracking-wider
                          hover:bg-white hover:text-black transition-all duration-300
-                         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white group"
+                         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white group cursor-pointer"
               >
                 {loading ? (
                   'Signing in…'
@@ -177,7 +177,7 @@ const Login = () => {
               Don't have an account?{' '}
               <Link
                 to="/signup"
-                className="text-[#ffb6c1] hover:text-[#ffb6c1]/80 transition-colors"
+                className="text-[#ffb6c1] hover:text-[#ffb6c1]/80 transition-colors cursor-pointer"
               >
                 Sign up
               </Link>

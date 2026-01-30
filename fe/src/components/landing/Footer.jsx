@@ -37,7 +37,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <Link to="/" className="inline-block mb-4 group">
+            <Link to="/" className="inline-block mb-4 group cursor-pointer">
               <span className="text-2xl font-light text-white tracking-tight group-hover:text-[#ffb6c1] transition-colors">mibu</span>
             </Link>
             <p className="text-white/40 font-light text-sm max-w-xs mb-6">
@@ -55,7 +55,7 @@ const Footer = () => {
                   {link.href != null ? (
                     <Link
                       to={link.href}
-                      className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light"
+                      className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light cursor-pointer"
                     >
                       {link.label}
                     </Link>
@@ -63,7 +63,7 @@ const Footer = () => {
                     <button
                       type="button"
                       onClick={link.onClick}
-                      className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light"
+                      className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light cursor-pointer"
                     >
                       {link.label}
                     </button>
@@ -81,7 +81,7 @@ const Footer = () => {
                 <li key={social.label}>
                   <a
                     href={social.href}
-                    className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light"
+                    className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light cursor-pointer"
                   >
                     {social.label}
                   </a>

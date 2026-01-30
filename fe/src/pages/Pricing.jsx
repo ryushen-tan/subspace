@@ -97,26 +97,26 @@ const Pricing = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 lg:px-12 py-6">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-light text-white tracking-tight">
+          <Link to="/" className="text-xl font-light text-white tracking-tight cursor-pointer">
             mibu
           </Link>
           <div className="flex items-center gap-8">
-            <Link to="/su3" className="text-sm text-white/60 hover:text-white transition-colors">
+            <Link to="/su3" className="text-sm text-white/60 hover:text-white transition-colors cursor-pointer">
               su3
             </Link>
-            <Link to="/research" className="text-sm text-white/60 hover:text-white transition-colors">
+            <Link to="/research" className="text-sm text-white/60 hover:text-white transition-colors cursor-pointer">
               Research
             </Link>
             {isAuthenticated ? (
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="text-sm text-white/60 hover:text-white transition-colors"
+                className="text-sm text-white/60 hover:text-white transition-colors cursor-pointer"
               >
                 Sign out
               </button>
             ) : (
-              <Link to="/login" className="text-sm text-white/60 hover:text-white transition-colors">
+              <Link to="/login" className="text-sm text-white/60 hover:text-white transition-colors cursor-pointer">
                 Sign in
               </Link>
             )}
@@ -212,7 +212,7 @@ const Pricing = () => {
             <button
               className="inline-flex items-center gap-3 px-8 py-4 border border-white/20
                         text-white font-medium tracking-wider hover:bg-white hover:text-black
-                        transition-all duration-300 group whitespace-nowrap"
+                        transition-all duration-300 group whitespace-nowrap cursor-pointer"
             >
               <MessageSquare className="w-4 h-4" />
               CONTACT SALES

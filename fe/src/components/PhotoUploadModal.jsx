@@ -66,7 +66,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer" onClick={onClose}>
       <div className="relative w-[95vw] max-w-xl bg-neutral-950 border border-white/10 rounded-xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
         
         {/* Header */}
@@ -77,7 +77,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+            className="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -172,14 +172,14 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleUpload}
             disabled={!selectedFile || isLoading}
-            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
