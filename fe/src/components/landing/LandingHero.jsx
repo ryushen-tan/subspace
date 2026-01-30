@@ -2,14 +2,17 @@ import { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Canvas } from '@react-three/fiber';
-import { ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../state/useAuthStore';
 import CherryBlossomPointCloud from './CherryBlossomPointCloud';
 
 // Register GSAP
 gsap.registerPlugin(ScrollTrigger);
 
 const LandingHero = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
   const taglineRef = useRef(null);
@@ -17,6 +20,11 @@ const LandingHero = () => {
   const threeContainerRef = useRef(null);
   
   const [scrollProgress, setScrollProgress] = useState(0);
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/');
+  };
 
   // Scroll progress tracking
   useEffect(() => {
@@ -113,6 +121,19 @@ const LandingHero = () => {
             <Link to="/pricing" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors">
               Pricing
             </Link>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors"
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link to="/login" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors">
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
       </nav>

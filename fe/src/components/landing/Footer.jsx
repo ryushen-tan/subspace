@@ -1,12 +1,24 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../state/useAuthStore';
 
 const Footer = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
   const currentYear = new Date().getFullYear();
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/');
+  };
 
   const links = [
     { label: 'su3', href: '/su3' },
     { label: 'Research', href: '/research' },
     { label: 'Pricing', href: '/pricing' },
+    ...(isAuthenticated
+      ? [{ label: 'Sign out', onClick: handleSignOut }]
+      : [{ label: 'Sign in', href: '/login' }]),
   ];
 
   const socials = [
@@ -40,12 +52,22 @@ const Footer = () => {
             <ul className="space-y-3">
               {links.map((link) => (
                 <li key={link.label}>
-                  <Link
-                    to={link.href}
-                    className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light"
-                  >
-                    {link.label}
-                  </Link>
+                  {link.href != null ? (
+                    <Link
+                      to={link.href}
+                      className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={link.onClick}
+                      className="text-white/60 hover:text-[#ffb6c1] transition-colors text-sm font-light"
+                    >
+                      {link.label}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

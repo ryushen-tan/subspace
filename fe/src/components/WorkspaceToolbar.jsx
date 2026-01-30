@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { RotateCw, Plus, Ruler, Move, Upload, Download, Eye, Camera } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
+import { API_BASE } from '../services/agentApi';
 
 const WorkspaceToolbar = ({ onPreviewClick, onRotateClick, onPhotoClick }) => {
   const uploadStepFile = useAgentStore((state) => state.uploadStepFile);
@@ -32,7 +33,7 @@ const WorkspaceToolbar = ({ onPreviewClick, onRotateClick, onPhotoClick }) => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8000/agent/${sessionId}/mesh/obj`);
+      const response = await fetch(`${API_BASE}/agent/${sessionId}/mesh/obj`);
       const data = await response.json();
       const blob = new Blob([data.obj], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);

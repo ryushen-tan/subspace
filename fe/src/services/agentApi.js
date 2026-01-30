@@ -1,4 +1,7 @@
-const WS_URL = 'ws://localhost:8000/agent/ws';
+const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+const WS_URL = API_BASE.replace(/^http/, 'ws') + '/agent/ws';
+
+export { API_BASE };
 
 class AgentWebSocket {
   constructor() {
@@ -95,7 +98,7 @@ class AgentWebSocket {
     const formData = new FormData();
     formData.append('file', file);
     
-    let url = 'http://localhost:8000/agent/upload-step';
+    let url = `${API_BASE}/agent/upload-step`;
     if (sessionId) {
       url += `?session_id=${sessionId}`;
     }
@@ -117,7 +120,7 @@ class AgentWebSocket {
     const formData = new FormData();
     formData.append('file', file);
     
-    let url = 'http://localhost:8000/agent/upload-stl';
+    let url = `${API_BASE}/agent/upload-stl`;
     if (sessionId) {
       url += `?session_id=${sessionId}`;
     }
@@ -139,7 +142,7 @@ class AgentWebSocket {
     const formData = new FormData();
     formData.append('file', file);
     
-    let url = 'http://localhost:8000/agent/upload-photo';
+    let url = `${API_BASE}/agent/upload-photo`;
     const params = new URLSearchParams();
     params.append('paper_size', paperSize);
     if (sessionId) {

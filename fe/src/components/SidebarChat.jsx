@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Send, MessageSquare, CheckCircle2, Circle, Loader2, Upload, Download, Wrench, Check, Command, Mic, MicOff } from 'lucide-react';
 import { useAgentStore } from '../state/useAgentStore';
+import { API_BASE } from '../services/agentApi';
 import ControlsOverlay from './ControlsOverlay';
 import MarkdownContent from './MarkdownContent';
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
@@ -260,7 +261,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8000/agent/${sessionId}/mesh/obj`);
+      const response = await fetch(`${API_BASE}/agent/${sessionId}/mesh/obj`);
       const data = await response.json();
       const blob = new Blob([data.obj], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);

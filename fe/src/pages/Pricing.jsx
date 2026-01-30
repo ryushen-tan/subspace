@@ -1,14 +1,23 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, MessageSquare } from 'lucide-react';
+import { useAuthStore } from '../state/useAuthStore';
 
 import PricingCard from '../components/pricing/PricingCard';
 import Footer from '../components/landing/Footer';
 import NoiseOverlay from '../components/landing/NoiseOverlay';
 
 const Pricing = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
   const headerRef = useRef(null);
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/');
+  };
 
   // Pricing tiers
   const tiers = [
@@ -98,6 +107,19 @@ const Pricing = () => {
             <Link to="/research" className="text-sm text-white/60 hover:text-white transition-colors">
               Research
             </Link>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-sm text-white/60 hover:text-white transition-colors"
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link to="/login" className="text-sm text-white/60 hover:text-white transition-colors">
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
       </nav>
