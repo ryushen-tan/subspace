@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import agent_router
 from routers import auth as auth_router
+import uvicorn
 
 app = FastAPI(
     title="3D Design Agent API",
@@ -39,5 +40,4 @@ async def health():
 
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

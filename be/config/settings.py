@@ -17,9 +17,9 @@ class Settings(BaseSettings):
     openrouter_include_reasoning: bool | None = None
     openrouter_reasoning_effort: str | None = None # "None', "Low", "Medium", "High"
     max_agent_iterations: int = 20
-    
-    # PocketBase configuration
-    pocketbase_url: str = "http://127.0.0.1:8090"  # PocketBase server URL
+
+    # PocketBase URL – from env POCKETBASE_URL (no trailing slash)
+    pocketbase_url: str = "http://127.0.0.1:8090"
 
 
 @lru_cache

@@ -54,7 +54,7 @@ async def verify_pocketbase_token(token: str) -> dict:
         HTTPException: If token is invalid, expired, or verification fails
     """
     settings = get_settings()
-    pb_url = settings.pocketbase_url or os.getenv('POCKETBASE_URL', 'http://127.0.0.1:8090')
+    pb_url = settings.pocketbase_url
     
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
