@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Su3EntryLink from '../components/Su3EntryLink';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../state/useAuthStore';
 import NoiseOverlay from '../components/landing/NoiseOverlay';
@@ -73,12 +74,9 @@ const Signup = () => {
             mibu
           </Link>
           <div className="flex items-center gap-8">
-            <Link
-              to="/su3"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
-            >
+            <Su3EntryLink className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               su3
-            </Link>
+            </Su3EntryLink>
             <Link
               to="/research"
               className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"

@@ -1,5 +1,6 @@
 const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 const WS_URL = API_BASE.replace(/^http/, 'ws') + '/agent/ws';
+const CONNECT_TIMEOUT_MS = 15000;
 
 export { API_BASE };
 
@@ -7,6 +8,7 @@ class AgentWebSocket {
   constructor() {
     this.ws = null;
     this.sessionId = null;
+    this._closedByUs = false;
     this.onStateUpdate = null;
     this.onMessage = null;
     this.onConnect = null;
@@ -16,6 +18,7 @@ class AgentWebSocket {
 
   connect(initialPrompt = '') {
     return new Promise((resolve, reject) => {
+      this._closedByUs = false;
       // Prevent double-connecting while a socket is already open/connecting
       if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
         if (this.sessionId) {
@@ -29,8 +32,30 @@ class AgentWebSocket {
       }
 
       this.ws = new WebSocket(WS_URL);
+      let timeoutId = null;
+
+      timeoutId = setTimeout(() => {
+        if (this.sessionId != null) return;
+        timeoutId = null;
+        this._closedByUs = true;
+        this.ws?.close();
+        this.ws = null;
+        const msg = `Connection to ${WS_URL} timed out after ${CONNECT_TIMEOUT_MS / 1000}s. Check that the server is running and the WebSocket endpoint is reachable.`;
+        this.onError?.(msg);
+        reject(new Error(msg));
+      }, CONNECT_TIMEOUT_MS);
 
       this.ws.onopen = () => {
+        if (this._closedByUs) {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          this.ws?.close();
+          this.ws = null;
+          this.sessionId = null;
+          return;
+        }
         if (this.ws?.readyState === WebSocket.OPEN) {
           this.ws.send(JSON.stringify({ type: 'start', prompt: initialPrompt }));
         }
@@ -40,6 +65,10 @@ class AgentWebSocket {
         const data = JSON.parse(event.data);
         
         if (data.type === 'session') {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
           this.sessionId = data.session_id;
           this.onConnect?.(data.session_id);
           resolve(data.session_id);
@@ -55,12 +84,30 @@ class AgentWebSocket {
         }
       };
 
-      this.ws.onerror = (error) => {
-        this.onError?.(error);
-        reject(error);
+      this.ws.onerror = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        if (this._closedByUs) return;
+        const msg = `WebSocket connection to ${WS_URL} failed. Check that the server is running and allows secure WebSocket (wss) connections.`;
+        this.onError?.(msg);
+        reject(new Error(msg));
       };
 
-      this.ws.onclose = () => {
+      this.ws.onclose = (event) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        if (this.sessionId == null && !this._closedByUs) {
+          const reason = event.reason || `code ${event.code}`;
+          const msg = event.code === 1006
+            ? `Connection closed before session (${reason}). Code 1006 usually means a reverse proxy or load balancer in front of the server is not forwarding WebSocket upgrades. See docs/websocket-troubleshooting.md.`
+            : `Connection closed before session (${reason}). Server may be down or the /agent/ws path may not be enabled.`;
+          this.onError?.(msg);
+        }
+        if (this._closedByUs) this.ws = null;
         this.onDisconnect?.();
       };
     });
@@ -85,6 +132,11 @@ class AgentWebSocket {
   }
 
   close() {
+    this._closedByUs = true;
+    if (this.ws?.readyState === WebSocket.CONNECTING) {
+      this.sessionId = null;
+      return;
+    }
     this.ws?.close();
     this.ws = null;
     this.sessionId = null;

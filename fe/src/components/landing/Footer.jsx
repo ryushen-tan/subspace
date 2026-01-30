@@ -13,7 +13,7 @@ const Footer = () => {
   };
 
   const links = [
-    { label: 'su3', href: '/su3' },
+    { label: 'su3', href: isAuthenticated ? '/dashboard' : '/signup' },
     { label: 'Research', href: '/research' },
     { label: 'Pricing', href: '/pricing' },
     ...(isAuthenticated

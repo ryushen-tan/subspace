@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Canvas } from '@react-three/fiber';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../state/useAuthStore';
+import Su3EntryLink from '../Su3EntryLink';
 import CherryBlossomPointCloud from './CherryBlossomPointCloud';
 
 // Register GSAP
@@ -74,6 +75,7 @@ const LandingHero = () => {
         end: '60% top',
         scrub: 1,
         onUpdate: (self) => {
+          if (!titleRef.current || !taglineRef.current || !scrollIndicatorRef.current) return;
           const progress = self.progress;
           gsap.to([titleRef.current, taglineRef.current], {
             opacity: 1 - progress * 1.5,
@@ -112,9 +114,9 @@ const LandingHero = () => {
             mibu
           </Link>
           <div className="flex items-center gap-8">
-            <Link to="/su3" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
+            <Su3EntryLink className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               su3
-            </Link>
+            </Su3EntryLink>
             <Link to="/research" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               Research
             </Link>

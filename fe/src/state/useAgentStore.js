@@ -206,13 +206,17 @@ export const useAgentStore = create((set, get) => ({
     });
   },
 
-  resetProject: () => {
-    get().disconnect();
+  /** Clear project state and points. Use disconnect: false when entering "new project" so we don't close the socket. */
+  resetProject: (opts = {}) => {
+    const { disconnect = false } = typeof opts === 'boolean' ? { disconnect: opts } : opts;
+    if (disconnect) get().disconnect();
     usePointsStore.getState().clearAll();
     set({
-      sessionId: null,
-      isConnected: false,
-      isLoading: false,
+      ...(disconnect && {
+        sessionId: null,
+        isConnected: false,
+        isLoading: false,
+      }),
       todo: [],
       messages: [],
       toolCalls: [],
@@ -664,14 +668,7 @@ export const useAgentStore = create((set, get) => ({
   },
 
   connect: async (initialPrompt = '') => {
-    set({ 
-      isLoading: true,
-      timelineSteps: [],
-      currentStepIndex: -1,
-      messages: [],
-      objects: [],
-      lastProcessedMeshSignature: null,
-    });
+    set({ isLoading: true });
     
     agentApi.onConnect = (sessionId) => {
       set({ sessionId, isConnected: true, isLoading: false });

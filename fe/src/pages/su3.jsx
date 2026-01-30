@@ -37,7 +37,7 @@ const Su3 = () => {
   const undo = useAgentStore((s) => s.undo);
   const redo = useAgentStore((s) => s.redo);
 
-  // Load project or reset for new project; disconnect session when switching
+  // Load project or reset for new project. Don't disconnect when entering "new project" so the WebSocket can connect.
   useEffect(() => {
     if (projectId) {
       setLoadError('');
@@ -55,10 +55,17 @@ const Su3 = () => {
       return () => { cancelled = true; };
     } else {
       setCurrentProjectId(null);
-      resetProject();
+      resetProject({ disconnect: false });
       setLoadError('');
     }
   }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Disconnect when leaving the editor so the WebSocket is closed.
+  useEffect(() => {
+    return () => {
+      useAgentStore.getState().disconnect();
+    };
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (!isAuthenticated || !userId) return;
@@ -81,8 +88,8 @@ const Su3 = () => {
         setCurrentProjectId(created.id);
         navigate(`/su3/${created.id}`, { replace: true });
       }
+      setLoadError('');
     } catch (e) {
-      console.error('Save failed', e);
       setLoadError(e?.message || 'Failed to save');
     } finally {
       setIsSaving(false);

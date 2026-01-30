@@ -7,7 +7,7 @@ import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { ViewCube } from '../components/scene/ViewCube';
 import { buildMeshGeometry, buildEdgesGeometry } from '../utils/meshUtils';
-import WorkspaceBottomBar from '../components/WorkspaceTopBar';
+import WorkspaceTopBar from '../components/WorkspaceTopBar';
 
 function MeshSurface({ mesh, pointOverrides, color, isActive, onSelect }) {
   const geometry = useMemo(() => buildMeshGeometry(mesh, pointOverrides), [mesh, pointOverrides]);
@@ -421,8 +421,8 @@ export function Scene({ isSidebarOpen, onPreviewClick, onPhotoClick }) {
       {/* Camera Position Tracker */}
       <CameraTracker />
     </Canvas>
-    <WorkspaceBottomBar 
-      onPreviewClick={onPreviewClick} 
+    <WorkspaceTopBar
+      onPreviewClick={onPreviewClick}
       onRotateClick={startManualIdle}
       onPhotoClick={onPhotoClick}
     />

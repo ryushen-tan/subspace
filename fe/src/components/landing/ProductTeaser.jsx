@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Box, MessageSquare, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Su3EntryLink from '../Su3EntryLink';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -121,15 +122,14 @@ const ProductTeaser = () => {
 
         {/* CTA */}
         <div className="flex items-center gap-12">
-          <Link
-            to="/su3"
+          <Su3EntryLink
             className="inline-flex items-center gap-3 px-8 py-4 border border-[#ffb6c1]/30
                       text-white font-medium tracking-wider hover:bg-[#ffb6c1]/10 hover:text-white
                       hover:border-[#ffb6c1]/50 pink-hover transition-all duration-300 group cursor-pointer"
           >
             TRY SU3
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </Su3EntryLink>
 
           <div className="hidden sm:block h-px flex-1 pink-divider" />
         </div>
