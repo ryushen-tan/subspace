@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import LandingHero from '../components/landing/LandingHero';
 import MissionSection from '../components/landing/MissionSection';
 import ProductTeaser from '../components/landing/ProductTeaser';
+import VideoDemoPreview from '../components/landing/VideoDemoPreview';
 import ResearchPreview from '../components/landing/ResearchPreview';
 import Footer from '../components/landing/Footer';
 import NoiseOverlay from '../components/landing/NoiseOverlay';
@@ -36,7 +37,8 @@ const Landing = () => {
         <LandingHero />
         <MissionSection />
         <ProductTeaser />
-        <ResearchPreview />
+        <VideoDemoPreview />
+        {/* <ResearchPreview /> */}
         <Footer />
       </main>
     </div>
