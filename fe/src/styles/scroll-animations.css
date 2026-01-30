@@ -1,0 +1,528 @@
+/* Zen Dither - Scroll Animation Styles */
+
+/* Dither Noise Overlay */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+
+/* Japanese Vertical Text */
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.vertical-rl {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* Grid Background Decoration */
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Dashed Lines (Japanese-inspired) */
+.line-dashed-vertical {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.15) 0,
+    rgba(255, 255, 255, 0.15) 4px,
+    transparent 4px,
+    transparent 12px
+  );
+  width: 1px;
+}
+
+/* Scroll Snap Container */
+.snap-scroll {
+  scroll-snap-type: y proximity;
+  overflow-y: scroll;
+  height: 100vh;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  min-height: 100vh;
+}
+
+/* Japanese Seal Accent (Hanko-style) */
+.seal-accent {
+  position: relative;
+}
+
+.seal-accent::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #dc2626; /* red-600 */
+  border-radius: 50%;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Ken Burns / Slow Zoom Animation */
+@keyframes slowZoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+.slow-zoom {
+  animation: slowZoom 20s ease-in-out infinite alternate;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Scroll Indicator Animation */
+@keyframes scrollPulse {
+  0%, 100% { 
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+  50% { 
+    opacity: 1;
+    transform: translateY(8px);
+  }
+}
+
+.scroll-indicator {
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* Mask Reveal Animation */
+.mask-reveal {
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+}
+
+.mask-reveal.revealed {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  transition: clip-path 1s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Stagger Text Reveal */
+.stagger-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.stagger-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s cubic-bezier(0.77, 0, 0.175, 1),
+              transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Minimal Card Hover */
+.minimal-card {
+  transition: all 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.minimal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Subtle Glow */
+.subtle-glow {
+  box-shadow: 0 0 60px rgba(255, 255, 255, 0.03);
+}
+
+/* Point Cloud Canvas Container */
+.point-cloud-container {
+  position: relative;
+}
+
+.point-cloud-container canvas {
+  filter: contrast(1.1) brightness(1.1);
+}
+
+/* Section Transitions */
+.section-fade {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.section-fade.visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Blur Reveal */
+.blur-reveal {
+  filter: blur(10px);
+  opacity: 0;
+}
+
+.blur-reveal.visible {
+  filter: blur(0);
+  opacity: 1;
+  transition: filter 0.8s ease, opacity 0.8s ease;
+}
+
+/* Horizontal Scroll Section */
+.horizontal-scroll {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Japanese-style Border */
+.japan-border {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.japan-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.japan-border::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== HALFTONE / DITHER UTILITIES ===== */
+
+/* Halftone dot pattern */
+.halftone {
+  position: relative;
+}
+
+.halftone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Dense dot pattern */
+.dither-dense {
+  position: relative;
+}
+
+.dither-dense::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 0.5px, transparent 0.5px);
+  background-size: 2px 2px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* Dither Grid */
+.dither-grid {
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* Dot Matrix Pattern */
+.dots-matrix {
+  background-image: 
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 6px 6px;
+}
+
+/* Pointillism Effect on Text */
+.text-dot-matrix {
+  background-image: radial-gradient(circle, #fff 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Halftone Overlay */
+.halftone-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 10px 10px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Scanlines */
+.scanline {
+  position: relative;
+}
+
+.scanline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.1) 2px,
+    rgba(255, 255, 255, 0.1) 4px
+  );
+}
+
+/* Animated Dither Reveal */
+@keyframes ditherReveal {
+  0% {
+    opacity: 0;
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+.dither-reveal {
+  animation: ditherReveal 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+/* Point Cloud Typography Effect */
+.text-point-cloud {
+  text-shadow: 
+    1px 1px 0 rgba(255, 255, 255, 0.05),
+    -1px 1px 0 rgba(255, 255, 255, 0.05),
+    1px -1px 0 rgba(255, 255, 255, 0.05),
+    -1px -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Organic Shape Blob Animation */
+@keyframes organicPulse {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+}
+
+.organic-blob {
+  animation: organicPulse 15s ease-in-out infinite;
+}
+
+/* Noise texture overlay */
+.noise-texture {
+  position: relative;
+}
+
+.noise-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Three Canvas Container */
+.three-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.three-canvas canvas {
+  outline: none;
+}
+
+/* Content layered on top of 3D */
+.content-overlay {
+  position: relative;
+  z-index: 10;
+}
+
+/* Scroll-based section transitions */
+.scroll-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+/* Minimal dot indicator */
+.dot-indicator {
+  display: flex;
+  gap: 8px;
+}
+
+.dot-indicator span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dot-indicator span.active {
+  background: #dc2626;
+}
+
+/* Point cloud line art style */
+.line-art-dot {
+  stroke-dasharray: 2 4;
+  animation: dashFlow 20s linear infinite;
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+/* ===== PINK CHERRY BLOSSOM UTILITIES ===== */
+
+/* Pink glowing border effect */
+.pink-glow {
+  box-shadow: 0 0 40px rgba(255, 182, 193, 0.15);
+}
+
+.pink-glow-strong {
+  box-shadow: 0 0 60px rgba(255, 182, 193, 0.3);
+}
+
+/* Pink accent text */
+.pink-accent {
+  color: #FFB6C1;
+}
+
+/* Pink gradient dot */
+.pink-dot {
+  background: linear-gradient(135deg, #FFB6C1, #DC143C);
+}
+
+/* Warm dark background with pink undertone */
+.bg-warm-dark {
+  background: radial-gradient(ellipse at center, #0d0505 0%, #050505 100%);
+}
+
+/* Pink text shadow for bloom effect */
+.pink-text-shadow {
+  text-shadow: 0 0 40px rgba(255, 182, 193, 0.2);
+}
+
+/* Pink gradient underline */
+.pink-underline {
+  background: linear-gradient(90deg, #FFB6C1, #DC143C);
+  height: 1px;
+}
+
+/* Pink seal/hanko style */
+.pink-seal {
+  background: linear-gradient(135deg, #FFB6C1, #DC143C);
+  box-shadow: 0 0 15px rgba(255, 182, 193, 0.4);
+}
+
+/* Pink gradient border */
+.pink-border {
+  border-color: rgba(255, 182, 193, 0.3);
+}
+
+/* Pink button/styles hover glow */
+.pink-hover:hover {
+  box-shadow: 0 0 30px rgba(255, 182, 193, 0.4);
+  border-color: rgba(255, 182, 193, 0.5);
+}
+
+/* Warm gradient text */
+.pink-gradient-text {
+  background: linear-gradient(135deg, #FFB6C1 0%, #DC143C 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Pink warm divider */
+.pink-divider {
+  background: linear-gradient(90deg, rgba(255, 182, 193, 0.4) 0%, rgba(220, 20, 60, 0.2) 100%, transparent);
+}
+
+/* Pink tinted noise overlay */
+.noise-pink {
+  opacity: 0.025;
+  mix-blend-mode: soft-light;
+}
+
+/* Cherry blossom petal particles */
+@keyframes floatSakura {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-15px) rotate(5deg);
+    opacity: 0.3;
+  }
+}
+
+.sakura-petal {
+  animation: floatSakura 4s ease-in-out infinite;
+}
+
+/* Pink accent pulse */
+@keyframes pinkPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 182, 193, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 182, 193, 0.6);
+  }
+}
+
+.pink-pulse {
+  animation: pinkPulse 3s ease-in-out infinite;
+}
