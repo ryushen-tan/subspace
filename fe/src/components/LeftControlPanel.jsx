@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown, User, LogIn, LogOut } from 'lucide-react';
+import { Eye, EyeOff, Layers, Pencil, Trash2, ChevronLeft, ChevronRight, Wrench, Search, Folder, ChevronDown, User, LogIn, LogOut, Save, LayoutDashboard } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAgentStore } from '../state/useAgentStore';
 import { useAuthStore } from '../state/useAuthStore';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import TransformControls from './TransformControls';
 
-const LeftControlPanel = ({ onPhotoClick }) => {
+const LeftControlPanel = ({ onPhotoClick, onSave, showDashboardLink, isSaving }) => {
   const Motion = motion;
   const objects = useAgentStore((state) => state.objects);
   const activeObjectId = useAgentStore((state) => state.activeObjectId);
@@ -149,7 +149,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
       {isOpen ? (
         <>
           {/* Top Bar with Toggle */}
-          <div className="relative flex items-center border-b border-white/5 justify-between px-3 py-2">
+          <div className="relative flex items-center border-b border-white/5 justify-between px-3 py-2 gap-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <Folder className="w-4 h-4 text-[#ffb6c1] flex-shrink-0" />
               {editingProjectName ? (
@@ -185,6 +185,28 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                 >
                   {projectName}
                 </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {showDashboardLink && (
+                <Link
+                  to="/dashboard"
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-[#ffb6c1] transition-colors cursor-pointer"
+                  title="Back to Dashboard"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                </Link>
+              )}
+              {onSave && isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={onSave}
+                  disabled={isSaving}
+                  className="p-1.5 rounded-lg hover:bg-[#ffb6c1]/20 text-gray-400 hover:text-[#ffb6c1] transition-colors focus:outline-none bg-transparent flex-shrink-0 cursor-pointer disabled:opacity-50"
+                  title="Save project"
+                >
+                  <Save className="w-4 h-4" />
+                </button>
               )}
             </div>
             <button

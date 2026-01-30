@@ -18,7 +18,7 @@ const Signup = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/su3');
+      navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
@@ -41,7 +41,7 @@ const Signup = () => {
     const result = await signup(email, password, passwordConfirm, name || undefined);
 
     if (result.success) {
-      navigate('/su3');
+      navigate('/dashboard');
     } else {
       setError(result.error || 'Sign up failed');
     }

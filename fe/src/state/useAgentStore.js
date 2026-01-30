@@ -151,14 +151,85 @@ export const useAgentStore = create((set, get) => ({
   finalized: false,
   lastProcessedMeshSignature: null,
   
-  // Project info
+  // Project info (in-memory + optional PocketBase project id)
+  currentProjectId: null,
   projectName: 'Untitled Project',
   projectDescription: '',
   projectCreatedAt: Date.now(),
-  
+
+  setCurrentProjectId: (id) => set({ currentProjectId: id }),
   setProjectName: (name) => set({ projectName: name || 'Untitled Project' }),
   setProjectDescription: (description) => set({ projectDescription: description || '' }),
-  
+
+  getSnapshotForSave: () => {
+    const s = get();
+    return {
+      version: 1,
+      projectName: s.projectName,
+      projectDescription: s.projectDescription,
+      objects: s.objects,
+      timelineSteps: s.timelineSteps,
+      currentStepIndex: s.currentStepIndex,
+      messages: s.messages,
+      todo: s.todo,
+      activeObjectId: s.activeObjectId,
+    };
+  },
+
+  hydrateFromSnapshot: (snapshot) => {
+    if (!snapshot || typeof snapshot !== 'object') return;
+    const s = snapshot;
+    set({
+      projectName: s.projectName ?? 'Untitled Project',
+      projectDescription: s.projectDescription ?? '',
+      objects: s.objects ?? [],
+      timelineSteps: s.timelineSteps ?? [],
+      currentStepIndex: s.currentStepIndex ?? -1,
+      messages: s.messages ?? [],
+      todo: s.todo ?? [],
+      activeObjectId: s.activeObjectId ?? null,
+      mesh: null,
+      lastProcessedMeshSignature: null,
+    });
+    const state = get();
+    const activeObj = state.objects.find((o) => o.id === state.activeObjectId);
+    if (activeObj?.mesh) set({ mesh: activeObj.mesh });
+    usePointsStore.getState().clearAll();
+    (state.objects || []).forEach((obj) => {
+      const verts = obj.mesh?.vertices || [];
+      const points = verts.map((v, i) => ({
+        id: v.id,
+        position: v.p,
+        color: COLORS[i % COLORS.length],
+      }));
+      usePointsStore.getState().setPointsForObject(obj.id, points);
+    });
+  },
+
+  resetProject: () => {
+    get().disconnect();
+    usePointsStore.getState().clearAll();
+    set({
+      sessionId: null,
+      isConnected: false,
+      isLoading: false,
+      todo: [],
+      messages: [],
+      toolCalls: [],
+      mesh: null,
+      objects: [],
+      activeObjectId: null,
+      finalized: false,
+      lastProcessedMeshSignature: null,
+      currentProjectId: null,
+      projectName: 'Untitled Project',
+      projectDescription: '',
+      projectCreatedAt: Date.now(),
+      timelineSteps: [],
+      currentStepIndex: -1,
+    });
+  },
+
   // Timeline state
   timelineSteps: [],
   currentStepIndex: -1,

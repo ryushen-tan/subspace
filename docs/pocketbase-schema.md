@@ -1,4 +1,6 @@
-# PocketBase schema: User tiers
+# PocketBase schema
+
+## User tiers
 
 This project uses **3 paid tiers** stored on the `users` collection:
 
@@ -34,3 +36,38 @@ This project uses **3 paid tiers** stored on the `users` collection:
 
 - In Admin UI: **Collections** → **users** → select user → set **tier** (0–3).
 - Via API (e.g. after payment): `PATCH /api/collections/users/records/<userId>` with `{ "tier": 1 }` (or 2, 3). Ensure the request is authenticated and only allowed for your backend or admin.
+
+---
+
+## Projects collection (user project library)
+
+The **projects** collection stores saved editor snapshots so each user has a library of projects.
+
+### Create the `projects` collection
+
+1. Start PocketBase and open Admin UI: http://127.0.0.1:8090/_/
+2. **Collections** → **"+ New collection"** → Name: `projects`.
+3. Add these fields:
+
+| Field         | Type     | Required | Notes                                      |
+|---------------|----------|----------|--------------------------------------------|
+| `user`        | Relation | Yes      | Single, collection: **users** (owner)      |
+| `name`        | Text     | Yes      | Project display name                       |
+| `description` | Text     | No       | Optional description                       |
+| `snapshot`    | JSON     | Yes      | Full project state (objects, timeline, messages, etc.) |
+
+4. **API Rules** (so only the owner can access their projects):
+
+   - **List:** `user = @request.auth.id`
+   - **View:** `user = @request.auth.id`
+   - **Create:** `@request.auth.id != ""` (and send `user: auth.id` from the app)
+   - **Update:** `user = @request.auth.id`
+   - **Delete:** `user = @request.auth.id`
+
+5. Save the collection.
+
+### What you need to do
+
+- Create the `projects` collection and fields as above.
+- Set the API rules so only the authenticated user can list/create/update/delete their own projects.
+- Ensure users are logged in when using the dashboard and editor; the app sends `user: pb.authStore.model.id` when creating a project.

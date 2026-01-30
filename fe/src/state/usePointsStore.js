@@ -92,6 +92,8 @@ export const usePointsStore = create((set) => ({
       }
     }),
 
+  clearAll: () => set({ points: [], selectedPointIds: [] }),
+
   clearSelection: () => set({ selectedPointIds: [] }),
   clearSelectionForObject: (objectId) =>
     set((state) => ({
