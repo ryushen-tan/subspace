@@ -17,7 +17,7 @@ const UnitToggle = () => {
           onClick={() => setSelectedUnit(unit.id)}
           className={`px-3 py-1 text-xs rounded transition-colors cursor-pointer ${
             selectedUnit === unit.id
-              ? 'bg-indigo-600 text-white'
+              ? 'bg-[#ffb6c1] text-neutral-950'
               : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
           }`}
         >

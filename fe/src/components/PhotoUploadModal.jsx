@@ -72,7 +72,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <Camera className="w-5 h-5 text-indigo-400" />
+            <Camera className="w-5 h-5 text-[#ffb6c1]" />
             <h2 className="text-xl font-semibold text-white">Photo to 3D Model</h2>
           </div>
           <button
@@ -96,7 +96,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
                   value="letter"
                   checked={paperSize === 'letter'}
                   onChange={(e) => setPaperSize(e.target.value)}
-                  className="w-4 h-4 accent-indigo-500"
+                  className="w-4 h-4 accent-[#ffb6c1]"
                 />
                 <span className="text-gray-300">US Letter (8.5" × 11")</span>
               </label>
@@ -106,7 +106,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
                   value="a4"
                   checked={paperSize === 'a4'}
                   onChange={(e) => setPaperSize(e.target.value)}
-                  className="w-4 h-4 accent-indigo-500"
+                  className="w-4 h-4 accent-[#ffb6c1]"
                 />
                 <span className="text-gray-300">A4 (210mm × 297mm)</span>
               </label>
@@ -117,8 +117,8 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
               selectedFile
-                ? 'border-indigo-500/50 bg-indigo-500/5'
-                : 'border-white/20 bg-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10'
+                ? 'border-[#ffb6c1]/50 bg-[#ffb6c1]/5'
+                : 'border-white/20 bg-white/5 hover:border-[#ffb6c1]/30 hover:bg-[#ffb6c1]/10'
             }`}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
@@ -132,7 +132,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-center">
-                  <Camera className="w-12 h-12 text-indigo-400" />
+                  <Camera className="w-12 h-12 text-[#ffb6c1]" />
                 </div>
                 <p className="text-gray-200 font-medium">Drag and drop or click to upload</p>
                 <p className="text-sm text-gray-400">JPG, PNG, GIF, WebP</p>
@@ -148,8 +148,8 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
           </div>
 
           {/* Instructions */}
-          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-4 space-y-2">
-            <p className="text-sm font-semibold text-indigo-300">Instructions:</p>
+          <div className="bg-[#ffb6c1]/10 border border-[#ffb6c1]/20 rounded-lg p-4 space-y-2">
+            <p className="text-sm font-semibold text-[#ffb6c1]/90">Instructions:</p>
             <ul className="text-xs text-gray-300 space-y-1">
               <li>• Place your object on the paper</li>
               <li>• Take a clear, well-lit photo from above</li>
@@ -179,7 +179,7 @@ export const PhotoUploadModal = ({ isOpen, onClose, sessionId }) => {
           <button
             onClick={handleUpload}
             disabled={!selectedFile || isLoading}
-            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="flex-1 px-4 py-2 rounded-lg bg-[#ffb6c1]/90 hover:bg-[#ffb6c1] text-neutral-950 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">

@@ -6,7 +6,7 @@ const MarkdownLink = ({ href, children }) => {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-indigo-400 hover:text-indigo-300 underline cursor-pointer transition-colors"
+      className="text-[#ffb6c1] hover:text-[#ffb6c1]/80 underline cursor-pointer transition-colors"
     >
       {children}
     </a>

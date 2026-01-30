@@ -101,7 +101,7 @@ const PreviewModal = ({ isOpen, onClose }) => {
                 <button
                   onClick={handleManualCapture}
                   disabled={isCapturing}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2 bg-[#ffb6c1]/90 hover:bg-[#ffb6c1] text-neutral-950 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Camera className="w-4 h-4" />
                   Capture Preview

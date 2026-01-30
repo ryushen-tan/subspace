@@ -129,7 +129,7 @@ const Timeline = () => {
             >
               {/* Progress Fill */}
               <Motion.div
-                className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full"
+                className="absolute top-0 left-0 h-full bg-[#ffb6c1] rounded-full"
                 style={{ width: `${progress}%` }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
@@ -179,7 +179,7 @@ const Timeline = () => {
           {/* Edit Button */}
           <button
             onClick={handleEditPrompt}
-            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-indigo-600/20 text-gray-400 hover:text-indigo-400 transition-colors text-[10px] flex-shrink-0 cursor-pointer"
+            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#ffb6c1]/20 text-gray-400 hover:text-[#ffb6c1] transition-colors text-[10px] flex-shrink-0 cursor-pointer"
           >
             <Edit2 className="w-3 h-3" />
           </button>
@@ -207,7 +207,7 @@ const Timeline = () => {
               value={editInput}
               onChange={(e) => setEditInput(e.target.value)}
               placeholder="Enter your modified prompt..."
-              className="w-full h-32 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full h-32 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-[#ffb6c1]/50 focus:ring-2 focus:ring-[#ffb6c1]/20"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -224,7 +224,7 @@ const Timeline = () => {
               </button>
               <button
                 onClick={handleSubmitEdit}
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-[#ffb6c1]/90 hover:bg-[#ffb6c1] text-neutral-950 transition-colors cursor-pointer"
               >
                 Send
               </button>

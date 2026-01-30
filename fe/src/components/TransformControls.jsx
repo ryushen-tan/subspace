@@ -125,7 +125,7 @@ const TransformControls = ({ objectId }) => {
       {/* Save Snapshot Button */}
       <button
         onClick={handleSaveSnapshot}
-        className="w-full px-3 py-2 flex items-center justify-center gap-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 rounded-lg transition-colors text-indigo-300 hover:text-indigo-200 cursor-pointer"
+        className="w-full px-3 py-2 flex items-center justify-center gap-2 bg-[#ffb6c1]/20 hover:bg-[#ffb6c1]/30 border border-[#ffb6c1]/30 rounded-lg transition-colors text-[#ffb6c1]/90 hover:text-[#ffb6c1] cursor-pointer"
       >
         <Save className="w-4 h-4" />
         <span className="text-sm font-medium">Save to Timeline</span>
@@ -137,7 +137,7 @@ const TransformControls = ({ objectId }) => {
           onClick={() => setExpandedSection(expandedSection === 'position' ? null : 'position')}
           className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-800/50 transition-colors cursor-pointer"
         >
-          <Move3D className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <Move3D className="w-4 h-4 text-[#ffb6c1] flex-shrink-0" />
           <span className="text-sm font-medium text-gray-300">Position</span>
           <span className={`ml-auto text-xs text-gray-500 transition-transform ${expandedSection === 'position' ? 'rotate-180' : ''}`}>
             ▼
@@ -154,7 +154,7 @@ const TransformControls = ({ objectId }) => {
                   type="number"
                   value={position[axis]?.toFixed(2) || 0}
                   onChange={(e) => handlePositionChange(axis, e.target.value)}
-                  className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-blue-500/50"
+                  className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-[#ffb6c1]/50"
                   step="0.1"
                 />
               </div>

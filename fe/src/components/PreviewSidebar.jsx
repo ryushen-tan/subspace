@@ -61,7 +61,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
           onClick={() => setActiveTab('image')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
             activeTab === 'image'
-              ? 'bg-neutral-800 text-white border-b-2 border-indigo-500'
+              ? 'bg-neutral-800 text-white border-b-2 border-[#ffb6c1]'
               : 'text-gray-400 hover:text-white hover:bg-neutral-800/50'
           }`}
         >
@@ -72,7 +72,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
           onClick={() => setActiveTab('3d')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
             activeTab === '3d'
-              ? 'bg-neutral-800 text-white border-b-2 border-indigo-500'
+              ? 'bg-neutral-800 text-white border-b-2 border-[#ffb6c1]'
               : 'text-gray-400 hover:text-white hover:bg-neutral-800/50'
           }`}
         >
@@ -99,7 +99,7 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
                     onClick={() => onSelectBackground(bg)}
                     className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                       isImageSelected && selectedBackground === bg
-                        ? 'border-indigo-500 ring-2 ring-indigo-500/50'
+                        ? 'border-[#ffb6c1] ring-2 ring-[#ffb6c1]/50'
                         : 'border-white/10 hover:border-white/20'
                     }`}
                   >
@@ -112,8 +112,8 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
                       }}
                     />
                     {isImageSelected && selectedBackground === bg && (
-                      <div className="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
-                        <Check className="w-6 h-6 text-indigo-400" />
+                      <div className="absolute inset-0 bg-[#ffb6c1]/20 flex items-center justify-center">
+                        <Check className="w-6 h-6 text-[#ffb6c1]" />
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
@@ -139,14 +139,14 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
                     onClick={() => handleSelect3D(glb)}
                     className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all bg-neutral-800 flex items-center justify-center cursor-pointer ${
                       isSelected
-                        ? 'border-indigo-500 ring-2 ring-indigo-500/50'
+                        ? 'border-[#ffb6c1] ring-2 ring-[#ffb6c1]/50'
                         : 'border-white/10 hover:border-white/20'
                     }`}
                   >
                     <Box className="w-12 h-12 text-gray-500" />
                     {isSelected && (
-                      <div className="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
-                        <Check className="w-6 h-6 text-indigo-400" />
+                      <div className="absolute inset-0 bg-[#ffb6c1]/20 flex items-center justify-center">
+                        <Check className="w-6 h-6 text-[#ffb6c1]" />
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-2 text-center">

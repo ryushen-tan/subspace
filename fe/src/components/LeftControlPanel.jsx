@@ -151,7 +151,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
           {/* Top Bar with Toggle */}
           <div className="relative flex items-center border-b border-white/5 justify-between px-3 py-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Folder className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+              <Folder className="w-4 h-4 text-[#ffb6c1] flex-shrink-0" />
               {editingProjectName ? (
                 <input
                   autoFocus
@@ -172,11 +172,11 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                     }
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                  className="flex-1 bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-[#ffb6c1]/50"
                 />
               ) : (
                 <span 
-                  className="font-medium text-gray-200 text-sm truncate cursor-pointer hover:text-indigo-400 transition-colors"
+                  className="font-medium text-gray-200 text-sm truncate cursor-pointer hover:text-[#ffb6c1] transition-colors"
                   onClick={() => {
                     setDraftProjectName(projectName);
                     setEditingProjectName(true);
@@ -217,7 +217,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                   placeholder="Search objects..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-neutral-900/50 border border-white/10 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-neutral-900 transition-colors"
+                  className="w-full pl-9 pr-3 py-2 bg-neutral-900/50 border border-white/10 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-[#ffb6c1]/50 focus:bg-neutral-900 transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -259,7 +259,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                 <div
                   key={object.id}
                   className={`p-3 bg-neutral-900/50 border rounded-lg transition-colors cursor-pointer ${
-                    object.id === activeObjectId ? 'border-indigo-500/60 bg-neutral-900' : 'border-white/5 hover:bg-neutral-900'
+                    object.id === activeObjectId ? 'border-[#ffb6c1]/50 bg-neutral-900' : 'border-white/5 hover:bg-neutral-900'
                   }`}
                   onClick={() => setActiveObject(object.id)}
                 >
@@ -297,7 +297,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-full bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                          className="w-full bg-neutral-800 border border-white/10 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-[#ffb6c1]/50"
                         />
                       ) : (
                         <span className="text-sm text-gray-300 truncate" title={object.name}>{object.name}</span>
@@ -380,7 +380,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                             if (e.key === 'Enter') handleHexInput(e.currentTarget.value, object);
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="flex-1 bg-neutral-900 border border-white/10 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-indigo-500/50 font-mono"
+                          className="flex-1 bg-neutral-900 border border-white/10 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#ffb6c1]/50 font-mono"
                           placeholder="#4F46E5"
                         />
                       </div>
@@ -403,8 +403,8 @@ const LeftControlPanel = ({ onPhotoClick }) => {
             {/* User Section - Bottom Left */}
             <div className="px-4 py-3 border-t border-white/5 bg-neutral-900/30">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-600/20 flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 text-indigo-400" />
+                <div className="w-8 h-8 rounded-full bg-[#ffb6c1]/20 flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 text-[#ffb6c1]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-200 truncate">
@@ -423,7 +423,7 @@ const LeftControlPanel = ({ onPhotoClick }) => {
                       navigate('/login');
                     }
                   }}
-                  className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-indigo-400 transition-colors flex-shrink-0 cursor-pointer"
+                  className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-[#ffb6c1] transition-colors flex-shrink-0 cursor-pointer"
                   title={isAuthenticated ? 'Logout' : 'Login'}
                 >
                   {isAuthenticated ? (

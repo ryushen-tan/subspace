@@ -80,7 +80,7 @@ const WorkspaceToolbar = ({ onPreviewClick, onRotateClick, onPhotoClick }) => {
               onClick={tool.onClick || undefined}
               className={`${isPreview ? 'px-4 py-2' : 'p-2'} rounded-lg transition-colors group relative cursor-pointer ${
                 tool.highlight
-                  ? 'bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 hover:text-indigo-300'
+                  ? 'bg-[#ffb6c1]/20 text-[#ffb6c1] hover:bg-[#ffb6c1]/30 hover:text-[#ffb6c1]'
                   : 'hover:bg-white/10 text-gray-400 hover:text-gray-200'
               }`}
               title={tool.label}

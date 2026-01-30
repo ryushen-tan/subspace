@@ -32,14 +32,14 @@ const TutorialModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const controls = [
-    { icon: Mouse, label: 'Orbit', action: 'Left mouse drag', color: 'text-blue-400' },
+    { icon: Mouse, label: 'Orbit', action: 'Left mouse drag', color: 'text-[#ffb6c1]' },
     { icon: Move3D, label: 'Pan', action: 'Middle mouse / Shift + drag', color: 'text-green-400' },
-    { icon: Mouse, label: 'Zoom', action: 'Scroll wheel / Pinch', color: 'text-purple-400' },
-    { icon: Mouse, label: 'Select Point', action: 'Left click on sphere', color: 'text-yellow-400' },
+    { icon: Mouse, label: 'Zoom', action: 'Scroll wheel / Pinch', color: 'text-[#ffb6c1]/80' },
+    { icon: Mouse, label: 'Select Point', action: 'Left click on sphere', color: 'text-[#ffb6c1]/70' },
     { icon: Move3D, label: 'Axis Move', action: 'Gizmo handles (X/Y/Z)', color: 'text-red-400' },
-    { icon: Keyboard, label: 'Auto-Rotate', action: 'Press R', color: 'text-indigo-400' },
-    { icon: Keyboard, label: 'Undo', action: 'Ctrl/Cmd + Z', color: 'text-cyan-400' },
-    { icon: Keyboard, label: 'Redo', action: 'Ctrl/Cmd + Shift + Z', color: 'text-pink-400' },
+    { icon: Keyboard, label: 'Auto-Rotate', action: 'Press R', color: 'text-[#ffb6c1]' },
+    { icon: Keyboard, label: 'Undo', action: 'Ctrl/Cmd + Z', color: 'text-[#ffb6c1]/60' },
+    { icon: Keyboard, label: 'Redo', action: 'Ctrl/Cmd + Shift + Z', color: 'text-[#ffb6c1]' },
   ];
 
   return (
@@ -101,7 +101,7 @@ const TutorialModal = ({ isOpen, onClose }) => {
         <div className="px-6 pb-6">
           <div className="h-1 bg-white/10 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-indigo-500 rounded-full"
+              className="h-full bg-[#ffb6c1] rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.1, ease: 'linear' }}

@@ -42,7 +42,7 @@ const Editor = () => {
   };
 
   return (
-    <div className="relative w-screen h-screen m-0 p-0 overflow-hidden bg-[#0a0a0a]">
+    <div className="relative w-screen h-screen m-0 p-0 overflow-hidden bg-[#050505]">
       <LeftControlPanel />
       <Scene 
         isSidebarOpen={isSidebarOpen} 

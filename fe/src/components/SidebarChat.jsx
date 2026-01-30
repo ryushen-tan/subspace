@@ -292,7 +292,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
           {/* Top Bar with Controls Overlay */}
           <div className="relative flex items-center border-b border-white/5 justify-between px-3 py-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <MessageSquare className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+              <MessageSquare className="w-4 h-4 text-[#ffb6c1] flex-shrink-0" />
               <span className="font-medium text-gray-200 text-sm truncate">Assistant</span>
               {isConnected && <span className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />}
             </div>
@@ -343,7 +343,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                   animate={{ opacity: 1, y: 0 }}
                   className={`p-3 rounded-xl text-sm ${
                     msg.role === 'user'
-                      ? 'bg-indigo-600/20 text-gray-200 ml-4'
+                      ? 'bg-[#ffb6c1]/20 text-gray-200 ml-4'
                       : 'bg-white/5 text-gray-300 mr-4'
                   }`}
                 >
@@ -362,7 +362,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
             <div className="space-y-1">
               {toolCalls.map((tool, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs text-gray-500 bg-white/5 rounded-lg px-2 py-1.5">
-                  <Wrench className={`w-3 h-3 mt-0.5 flex-shrink-0 ${tool.success ? 'text-blue-400' : 'text-red-400'}`} />
+                  <Wrench className={`w-3 h-3 mt-0.5 flex-shrink-0 ${tool.success ? 'text-[#ffb6c1]' : 'text-red-400'}`} />
                   <div className="min-w-0">
                     <span className="font-medium text-gray-400">{tool.name}</span>
                     <p className="text-gray-600 truncate">{tool.result}</p>
@@ -391,7 +391,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
         {/* Pinned Todo List */}
         {todo.length > 0 && (
           <div className="px-4 py-2 border-t border-white/5 bg-neutral-900/50">
-            <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-2">Tasks</p>
+            <p className="text-xs font-semibold text-[#ffb6c1]/80 uppercase tracking-wide mb-2">Tasks</p>
             <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
               {todo.map((task, i) => (
                 <div key={i} className={`flex items-start gap-2 text-sm ${task.done ? 'text-gray-500' : 'text-gray-300'}`}>
@@ -445,10 +445,10 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                       key={cmd.name}
                       onClick={() => setInput(cmd.name + ' ')}
                       className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
-                        i === selectedCommandIdx ? 'bg-indigo-600/30' : 'hover:bg-white/5'
+                        i === selectedCommandIdx ? 'bg-[#ffb6c1]/20' : 'hover:bg-white/5'
                       }`}
                     >
-                      <Command className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                      <Command className="w-4 h-4 text-[#ffb6c1] flex-shrink-0" />
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-gray-200">{cmd.name}</div>
                         <div className="text-xs text-gray-500 truncate">{cmd.description}</div>
@@ -477,12 +477,12 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                         setShowMentions(false);
                       }}
                       className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
-                        i === selectedMentionIdx ? 'bg-indigo-600/30' : 'hover:bg-white/5'
+                        i === selectedMentionIdx ? 'bg-[#ffb6c1]/20' : 'hover:bg-white/5'
                       }`}
                     >
                       <div 
                         className="w-3 h-3 rounded-sm flex-shrink-0" 
-                        style={{ backgroundColor: obj.color || '#4F46E5' }}
+                        style={{ backgroundColor: obj.color || '#ffb6c1' }}
                       />
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-gray-200">{obj.name}</div>
@@ -502,7 +502,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
                 onKeyDown={handleKeyDown}
                 placeholder="Type / for commands or @ for objects..."
                 disabled={isLoading || isRecording || isTranscribing}
-                className={`w-full bg-neutral-900 border border-white/10 rounded-xl pl-24 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner disabled:opacity-50 ${isRecording ? 'border-red-500/50' : ''}`}
+                className={`w-full bg-neutral-900 border border-white/10 rounded-xl pl-24 pr-12 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#ffb6c1]/50 focus:ring-1 focus:ring-[#ffb6c1]/30 transition-all shadow-inner disabled:opacity-50 ${isRecording ? 'border-red-500/50' : ''}`}
               />
               {/* Recording indicator */}
               {isRecording && (
@@ -532,7 +532,7 @@ const SidebarChat = ({ isOpen, setIsOpen }) => {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading || isRecording}
-                className={`absolute right-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200 cursor-pointer disabled:cursor-not-allowed ${
+                className={`absolute right-2 p-1.5 bg-[#ffb6c1]/90 text-neutral-950 rounded-lg hover:bg-[#ffb6c1] transition-colors disabled:opacity-0 disabled:scale-90 transform duration-200 cursor-pointer disabled:cursor-not-allowed ${
                   isRecording ? 'opacity-0' : ''
                 }`}
               >

@@ -3,10 +3,10 @@ import { ArrowUpRight } from 'lucide-react';
 
 const BlogCard = ({ post }) => {
   const categoryColors = {
-    Technical: 'border-purple-400/50 text-purple-300',
-    Update: 'border-blue-400/50 text-blue-300',
-    Paper: 'border-green-400/50 text-green-300',
-    Announcement: 'border-orange-400/50 text-orange-300',
+    Technical: 'border-[#ffb6c1]/50 text-[#ffb6c1]',
+    Update: 'border-[#ffb6c1]/40 text-[#ffb6c1]/90',
+    Paper: 'border-[#ffb6c1]/40 text-[#ffb6c1]/90',
+    Announcement: 'border-[#ffb6c1]/50 text-[#ffb6c1]',
   };
 
   const categoryClass = categoryColors[post.category] || 'border-white/20 text-white/40';

@@ -15,9 +15,9 @@ const MarkdownContent = ({ content }) => {
           em: ({ children }) => <em className="italic text-gray-300">{children}</em>,
           code: ({ inline, children }) => 
             inline ? (
-              <code className="px-1.5 py-0.5 bg-white/10 rounded text-indigo-300 font-mono text-xs">{children}</code>
+              <code className="px-1.5 py-0.5 bg-white/10 rounded text-[#ffb6c1] font-mono text-xs">{children}</code>
             ) : (
-              <code className="block p-2 bg-white/10 rounded text-indigo-300 font-mono text-xs whitespace-pre-wrap overflow-x-auto">{children}</code>
+              <code className="block p-2 bg-white/10 rounded text-[#ffb6c1] font-mono text-xs whitespace-pre-wrap overflow-x-auto">{children}</code>
             ),
           pre: ({ children }) => (
             <pre className="bg-white/5 rounded p-2 overflow-x-auto my-2">
@@ -32,7 +32,7 @@ const MarkdownContent = ({ content }) => {
           h2: ({ children }) => <h2 className="text-base font-bold text-white mb-2">{children}</h2>,
           h3: ({ children }) => <h3 className="text-sm font-bold text-white mb-1">{children}</h3>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-indigo-500/50 pl-3 my-2 text-gray-400 italic">
+            <blockquote className="border-l-2 border-[#ffb6c1]/50 pl-3 my-2 text-gray-400 italic">
               {children}
             </blockquote>
           ),
