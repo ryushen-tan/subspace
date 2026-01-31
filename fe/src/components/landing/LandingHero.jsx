@@ -120,9 +120,9 @@ const LandingHero = () => {
             <Link to="/research" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               Research
             </Link>
-            <Link to="/pricing" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
+            {/* <Link to="/pricing" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               Pricing
-            </Link>
+            </Link> */}
             {isAuthenticated ? (
               <button
                 type="button"

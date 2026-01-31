@@ -83,12 +83,12 @@ const Signup = () => {
             >
               Research
             </Link>
-            <Link
+            {/* <Link
               to="/pricing"
               className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
             >
               Pricing
-            </Link>
+            </Link> */}
             <Link
               to="/login"
               className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"

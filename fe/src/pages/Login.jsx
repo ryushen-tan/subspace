@@ -70,12 +70,12 @@ const Login = () => {
             >
               Research
             </Link>
-            <Link
+            {/* <Link
               to="/pricing"
               className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
             >
               Pricing
-            </Link>
+            </Link> */}
             <Link
               to="/signup"
               className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
