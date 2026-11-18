@@ -71,24 +71,12 @@ const Signup = () => {
             to="/"
             className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors cursor-pointer"
           >
-            mibu
+            polyspace
           </Link>
           <div className="flex items-center gap-8">
             <Su3EntryLink className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               su3
             </Su3EntryLink>
-            <Link
-              to="/research"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
-            >
-              Research
-            </Link>
-            {/* <Link
-              to="/pricing"
-              className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
-            >
-              Pricing
-            </Link> */}
             <Link
               to="/login"
               className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer"
@@ -111,7 +99,7 @@ const Signup = () => {
               </p>
               <h1 className="text-3xl font-light text-white mb-2">Create an account</h1>
               <p className="text-white/50 font-light text-sm">
-                Join mibu to get started
+                Join polyspace to get started
               </p>
             </div>
 

@@ -111,18 +111,12 @@ const LandingHero = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 lg:px-12 py-6">
         <div className="flex items-center justify-between">
           <Link to="/" className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors cursor-pointer">
-            mibu
+            polyspace
           </Link>
           <div className="flex items-center gap-8">
             <Su3EntryLink className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
               su3
             </Su3EntryLink>
-            <Link to="/research" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
-              Research
-            </Link>
-            {/* <Link to="/pricing" className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
-              Pricing
-            </Link> */}
             {isAuthenticated ? (
               <button
                 type="button"
@@ -182,7 +176,7 @@ const LandingHero = () => {
                 className="text-8xl sm:text-9xl lg:text-[12rem] font-thin tracking-tighter text-white leading-none pink-text-shadow"
                 style={{ letterSpacing: '-0.04em' }}
               >
-                mibu
+                polyspace
               </h1>
             </div>
 

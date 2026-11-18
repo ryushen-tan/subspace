@@ -16,7 +16,6 @@ const PreviewSidebar = ({ selectedBackground, onSelectBackground }) => {
         // For now, we'll scan common image files in public
         const commonImages = [
           'grass background.jpg',
-          'IMG_0179.jpg',
           // Add more as needed
         ];
         
