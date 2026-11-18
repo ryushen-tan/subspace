@@ -20,7 +20,7 @@ const Footer = () => {
   ];
 
   const socials = [
-    { label: 'GitHub', href: 'https://github.com/ryushen-tan/polyspace' },
+    { label: 'GitHub', href: 'https://github.com/ryushen-tan/subspace' },
   ];
 
   return (
@@ -34,7 +34,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="md:col-span-2">
             <Link to="/" className="inline-block mb-4 group cursor-pointer">
-              <span className="text-2xl font-light text-white tracking-tight group-hover:text-[#ffb6c1] transition-colors">polyspace</span>
+              <span className="text-2xl font-light text-white tracking-tight group-hover:text-[#ffb6c1] transition-colors">subspace</span>
             </Link>
             <p className="text-white/40 font-light text-sm max-w-xs mb-6">
               Low-poly 3D CAD generation from natural language.
@@ -90,7 +90,7 @@ const Footer = () => {
         {/* Bottom bar with pink border */}
         <div className="mt-16 pt-8 border-t border-[#ffb6c1]/10 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="font-mono text-xs text-[#ffb6c1]/30">
-            © {currentYear} polyspace contributors. MIT License.
+            © {currentYear} subspace contributors. MIT License.
           </p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 pink-seal rounded-full" />

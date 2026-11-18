@@ -1,4 +1,4 @@
-# polyspace backend
+# subspace backend
 
 FastAPI service that runs the LLM design agent. The agent builds and edits low-poly meshes by calling tools, and streams its progress to the frontend over a WebSocket.
 

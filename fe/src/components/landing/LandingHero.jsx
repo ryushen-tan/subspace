@@ -111,7 +111,7 @@ const LandingHero = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 lg:px-12 py-6">
         <div className="flex items-center justify-between">
           <Link to="/" className="text-xl font-light text-white tracking-tight hover:text-[#ffb6c1] transition-colors cursor-pointer">
-            polyspace
+            subspace
           </Link>
           <div className="flex items-center gap-8">
             <Su3EntryLink className="text-sm text-white/60 hover:text-[#ffb6c1] transition-colors cursor-pointer">
@@ -176,7 +176,7 @@ const LandingHero = () => {
                 className="text-8xl sm:text-9xl lg:text-[12rem] font-thin tracking-tighter text-white leading-none pink-text-shadow"
                 style={{ letterSpacing: '-0.04em' }}
               >
-                polyspace
+                subspace
               </h1>
             </div>
 
