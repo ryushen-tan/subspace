@@ -21,3 +21,9 @@ pillow>=11.0.0
 
 # Optional: WebSocket client for tests
 websockets>=14.0
+
+# Optional: STEP/STL conversion (utils/stl_converter.py)
+# cadquery
+
+# Optional: headless mesh preview renders, falls back to trimesh if missing
+# pyrender
